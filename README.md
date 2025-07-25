@@ -1,5 +1,10 @@
 # Causal Diffusion Autoencoders: Toward Counterfactual Generation via Diffusion Probabilistic Models
-This is the source code for the implementation of "Causal Diffusion Autoencoders: Toward Counterfactual Generation via Diffusion Probabilistic Models" (ECAI 2024)
+
+This fork contains the source code for the implementation of "Causal Diffusion Autoencoders: Toward Counterfactual Generation via Diffusion Probabilistic Models" (ECAI 2024). The original code lacked a clear README file, making it unclear how to obtain the desired dataset and where to find the appropriate files. This fork aims to address those issues.
+
+This README describes the process of transforming [the original source code](https://github.com/Akomand/CausalDiffAE?tab=readme-ov-file) into this repository and provides a step-by-step guide for running the code on the MorphoMNIST dataset.
+
+## Intro
 
 Diffusion probabilistic models (DPMs) have become the state-of-the-art in high-quality image generation. However, DPMs have an arbitrary noisy latent space with no interpretable or controllable semantics. Although there has been significant research effort to improve image sample quality, there is little work on representation-controlled generation using diffusion models. Specifically, causal modeling and controllable counterfactual generation using DPMs is an underexplored area. In this work, we propose CausalDiffAE, a diffusion-based causal representation learning framework to enable counterfactual generation according to a specified causal model. Our key idea is to use an encoder to extract high-level semantically meaningful causal variables from high-dimensional data and model stochastic variation using reverse diffusion. We propose a causal encoding mechanism that maps high-dimensional data to causally related latent factors and parameterize the causal mechanisms among latent factors using neural networks. To enforce the disentanglement of causal variables, we formulate a variational objective and leverage auxiliary label information in a prior to regularize the latent space. We propose a DDIM-based counterfactual generation procedure subject to do-interventions. Finally, to address the limited label supervision scenario, we also study the application of CausalDiffAE when a part of the training data is unlabeled, which also enables granular control over the strength of interventions in generating counterfactuals during inference. We empirically show that CausalDiffAE learns a disentangled latent space and is capable of generating high-quality counterfactual images.
 
@@ -7,7 +12,7 @@ Diffusion probabilistic models (DPMs) have become the state-of-the-art in high-q
 
 # Getting environment up and running
 1. Create a virtual environment: `python3.12 -m venv causaldiffae_venv`
-2. Install the requirement with this huge command: 
+2. Install the requirements with this huge `pip install` command: 
 ```
 pip install absl-py==2.3.1 aiohappyeyeballs==2.6.1 aiohttp==3.12.14 aiosignal==1.4.0 attrs==25.3.0 blobfile==3.0.0 colorama==0.4.6 contourpy==1.3.2 cycler==0.12.1 filelock==3.18.0 fonttools==4.59.0 frozenlist==1.7.0 fsspec==2025.5.1 grpcio==1.73.1 idna==3.10 imageio==2.37.0 Jinja2==3.1.6 joblib==1.5.1 kiwisolver==1.4.8 lazy_loader==0.4 lightning-utilities==0.14.3 lxml==6.0.0 Markdown==3.8.2 MarkupSafe==3.0.2 matplotlib==3.10.3 mpi4py==4.1.0 mpmath==1.3.0 multidict==6.6.3 networkx==3.5 numpy==2.3.1 opt_einsum==3.4.0 packaging==25.0 pandas==2.3.1 pillow==11.3.0 propcache==0.3.2 protobuf==6.31.1 pycryptodomex==3.23.0 pyparsing==3.2.3 pyro-api==0.1.2 pyro-ppl==1.9.1 python-dateutil==2.9.0.post0 pytorch-lightning==2.5.2 pytz==2025.2 PyYAML==6.0.2 scikit-image==0.25.2 scikit-learn==1.7.1 scipy==1.16.0 seaborn==0.13.2 setuptools==80.9.0 six==1.17.0 sympy==1.14.0 tensorboard==2.20.0 tensorboard-data-server==0.7.2 threadpoolctl==3.6.0 tifffile==2025.6.11 torch==2.7.1 torchmetrics==1.8.0 torchvision==0.22.1 tqdm==4.67.1 typing_extensions==4.14.1 tzdata==2025.2 urllib3==2.5.0 Werkzeug==3.1.3 yarl==1.20.1
 ```
