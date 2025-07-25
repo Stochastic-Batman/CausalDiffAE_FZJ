@@ -5,39 +5,107 @@ Diffusion probabilistic models (DPMs) have become the state-of-the-art in high-q
 
 ![Model](causaldiffae.png)
 
-## Usage
+# Getting environment up and running
+1. Create a virtual environment: `python3.12 -m venv causaldiffae_venv`
+2. Install the requirement with this huge command: 
+```
+pip install absl-py==2.3.1 aiohappyeyeballs==2.6.1 aiohttp==3.12.14 aiosignal==1.4.0 attrs==25.3.0 blobfile==3.0.0 colorama==0.4.6 contourpy==1.3.2 cycler==0.12.1 filelock==3.18.0 fonttools==4.59.0 frozenlist==1.7.0 fsspec==2025.5.1 grpcio==1.73.1 idna==3.10 imageio==2.37.0 Jinja2==3.1.6 joblib==1.5.1 kiwisolver==1.4.8 lazy_loader==0.4 lightning-utilities==0.14.3 lxml==6.0.0 Markdown==3.8.2 MarkupSafe==3.0.2 matplotlib==3.10.3 mpi4py==4.1.0 mpmath==1.3.0 multidict==6.6.3 networkx==3.5 numpy==2.3.1 opt_einsum==3.4.0 packaging==25.0 pandas==2.3.1 pillow==11.3.0 propcache==0.3.2 protobuf==6.31.1 pycryptodomex==3.23.0 pyparsing==3.2.3 pyro-api==0.1.2 pyro-ppl==1.9.1 python-dateutil==2.9.0.post0 pytorch-lightning==2.5.2 pytz==2025.2 PyYAML==6.0.2 scikit-image==0.25.2 scikit-learn==1.7.1 scipy==1.16.0 seaborn==0.13.2 setuptools==80.9.0 six==1.17.0 sympy==1.14.0 tensorboard==2.20.0 tensorboard-data-server==0.7.2 threadpoolctl==3.6.0 tifffile==2025.6.11 torch==2.7.1 torchmetrics==1.8.0 torchvision==0.22.1 tqdm==4.67.1 typing_extensions==4.14.1 tzdata==2025.2 urllib3==2.5.0 Werkzeug==3.1.3 yarl==1.20.1
+```
 
-### Training and evaluating 
+# MorphoMNIST Setup
 
-1. Clone the repository
+This model uses the MorphoMNIST dataset with the intensity attribute, which is not included in any of the datasets from the [Morpho-MNIST repository](https://github.com/dccastro/Morpho-MNIST). Therefore, we provide instructions for generating the appropriate dataset.
 
-     ```
-     git clone https://github.com/Akomand/CausalDiffAE.git
-     cd CausalDiffAE
-     ```
-2. Create environment and install dependencies
-   ```
-   conda env create -f environment.yml
-   ```
-3. Create Dataset in ```image_datasets.py```
-3. Specify Causal Adjacency Matrix A in ```unet.py```
-   ```
-   A = th.tensor([[0, 1], [0, 0]], dtype=th.float32)
-   ```
-4. Specify hyperparameters and run training script
-   ```
-    ./train_[dataset]_causaldae.sh
-   ```
-5. For classifier-free paradigm training, set ```masking=True``` in hyperparameter configs
-6. To train anti-causal classifiers to evaluate effectiveness, run
-   ```
-   python [dataset]_classifier.py
-   ```
-7. For counterfactual generation, run the following script with the specified causal graph
-   ```
-    ./test_[dataset]_causaldae.sh
-   ```
-8. Modify ```image_causaldae_test.py``` to perform desired intervention and sample counterfactual
+1. Download MorphoMNIST Dataset. Go to the [Morpho-MNIST repository](https://github.com/dccastro/Morpho-MNIST) and download any dataset (the original work used `plain`). After extraction, confirm the folder structure is correct and not nested (should look like `plain/FILES`, not `plain/plain/FILES`).
+
+2. Clone [DeepSCM repository](https://github.com/biomedia-mira/deepscm?tab=readme-ov-file).
+
+3. Copy the `Morpho-MNIST/morphomnist` subfolder into the `deepscm` directory so it is located at `deepscm/morphomnist`.
+
+4. Install requirements (if you encounter Python version issues, use Python 3.7.2) with either `pip install -r requirements.txt` or 
+```
+pip install numpy pandas pyro-ppl pytorch-lightning scikit-image scikit-learn scipy seaborn tensorboard torch torchvision
+```
+
+If you plan to use DeepSCM code for other purposes, sync the submodule `git submodule update --recursive --init`
+
+
+5. Open `deepscm/datasets/morphomnist/transforms.py` (`deepscm/morphomnist` and `deepscm/datasets/morphomnist` are separate folders, great naming!) and on line 11, remove the `multichannel=False` argument.  
+Change: ```disk = transform.pyramid_reduce(mag_disk, downscale=scale, order=1, multichannel=False)```
+to: ```disk = transform.pyramid_reduce(mag_disk, downscale=scale, order=1)``` 
+
+6. To generate a synthetic MorphoMNIST dataset with the intensity attribute, run the following command, replacing the paths with those appropriate to your environment:
+```
+python -m deepscm.datasets.morphomnist.create_synth_thickness_intensity_data --data-dir /path/to/morphomnist -o /path/to/dataset
+```
+
+## After getting the synthetic MorphoMNIST dataset, you can remove the entire `deepscm` from your computer.
+
+# Getting CausalDiffAE up and running
+
+1. Clone the repo: 
+```
+git clone https://github.com/Akomand/CausalDiffAE.git
+cd CausalDiffAE
+```
+
+If you haven't installed dependencies with pip by following this README.md file, you can create environment with conda:
+```
+conda env create -f environment.yml
+```
+
+2. The authors have the synthetic MorphoMNIST dataset at the top level of the repository, under the `datasets` folder:
+```
+causaldiffae_venv/
+datasets/
+├── args.txt
+├── t10k-images-idx3-ubyte.gz
+├── t10k-labels-idx1-ubyte.gz
+├── t10k-morpho.csv
+├── train-images-idx3-ubyte.gz
+├── train-labels-idx1-ubyte.gz
+└── train-morpho.csv
+improved_diffusion/
+scripts/
+OTHER FILES
+```
+
+Copy [`io.py` from Morpho-MNIST repo](https://github.com/dccastro/Morpho-MNIST/blob/main/morphomnist/io.py) under `datasets/` folder and change:
+```
+# from datasets.morphomnist import io
+import io
+```
+to:
+```
+from datasets.morphomnist import io
+# import io
+```
+
+3. Create Dataset in `improved_diffusion/image_datasets.py`
+
+4. Specify Causal Adjacency Matrix A in `improved_diffusion/unet.py`
+```
+A = th.tensor([[0, 1], [0, 0]], dtype=th.float32)
+```
+
+5. Specify hyperparameters and run training script:
+```
+./train_[dataset]_causaldae.sh
+```
+
+6. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.
+
+7. To train anti-causal classifiers to evaluate effectiveness, run:
+```
+python [dataset]_classifier.py
+```
+
+8. For counterfactual generation, run the following script with the specified causal graph:
+```
+./test_[dataset]_causaldae.sh
+```
+
+9. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
 
 ### Data acknowledgements
 Experiments are run on the following datasets to evaluate our model:
