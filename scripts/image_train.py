@@ -22,25 +22,24 @@ def main():
     args = create_argparser().parse_args()
 
     dist_util.setup_dist()
-    # logger.configure(dir = "../results/morphomnist")
-    # logger.configure(dir = "../results/morphomnist/causaldiffae_masked_p=0.8")
+    logger.configure(dir = "../results/morphomnist")
+    logger.configure(dir = "../results/morphomnist/causaldiffae_masked_p=0.8")
+    logger.configure(dir = "../results/morphomnist/diffae_unaligned")
+
     # logger.configure(dir = "../results/pendulum/causaldiffae_masked")
     # logger.configure(dir = "../results/pendulum/label_conditional")
     # logger.configure(dir = "../results/pendulum/diffae_aligned")
     # logger.configure(dir = "../results/pendulum/causaldiffae")
+    # logger.configure(dir = "../results/pendulum/diffae_unaligned")
     
     logger.configure(dir = "../results/circuit/causaldiffae_masked")
     # logger.configure(dir = "../results/circuit/diffae_unaligned")
     # logger.configure(dir = "../results/circuit/diffae")
     # logger.configure(dir = "../results/circuit/label_conditional")
-    # logger.configure(dir = "../results/morphomnist/diffae_unaligned")
-    # logger.configure(dir = "../results/pendulum/diffae_unaligned")
 
     logger.log("creating model and diffusion...")
     # CREATE MODEL (model is the UNET and diffusion is forward/reverse process and variance scheduling)
-    model, diffusion = create_model_and_diffusion(
-        **args_to_dict(args, model_and_diffusion_defaults().keys())
-    )
+    model, diffusion = create_model_and_diffusion(**args_to_dict(args, model_and_diffusion_defaults().keys()))
     model.to(dist_util.dev())
 
     # TIMESTEP SAMPLING (UNIFORM OR IMPORTANCE SAMPLING)

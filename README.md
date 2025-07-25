@@ -93,24 +93,26 @@ from datasets.morphomnist import io
 A = th.tensor([[0, 1], [0, 0]], dtype=th.float32)
 ```
 
-5. Specify hyperparameters and run training script:
+5. For each of the training and testing scripts in `scripts\morhomnist` and other(`scripts\` subfolders) set `--data-dir` argument to `../../datasets/`.
+
+6. Specify hyperparameters and run training script:
 ```
 ./train_[dataset]_causaldae.sh
 ```
 
-6. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.
+7. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.
 
-7. To train anti-causal classifiers to evaluate effectiveness, run:
+8. To train anti-causal classifiers to evaluate effectiveness, navigate to `scripts\morhomnist` (or whichever example you are experimenting with) and run:
 ```
 python [dataset]_classifier.py
 ```
 
-8. For counterfactual generation, run the following script with the specified causal graph:
+9. For counterfactual generation, run the following script with the specified causal graph:
 ```
 ./test_[dataset]_causaldae.sh
 ```
 
-9. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
+10. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
 
 ### Data acknowledgements
 Experiments are run on the following datasets to evaluate our model:
