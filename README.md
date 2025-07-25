@@ -59,17 +59,18 @@ If you haven't installed dependencies with pip by following this README.md file,
 conda env create -f environment.yml
 ```
 
-2. The authors have the synthetic MorphoMNIST dataset at the top level of the repository, under the `datasets` folder:
+2. The authors have the synthetic MorphoMNIST dataset in the `morphomnist` directory, under the `datasets` folder:
 ```
 causaldiffae_venv/
 datasets/
-├── args.txt
-├── t10k-images-idx3-ubyte.gz
-├── t10k-labels-idx1-ubyte.gz
-├── t10k-morpho.csv
-├── train-images-idx3-ubyte.gz
-├── train-labels-idx1-ubyte.gz
-└── train-morpho.csv
+	└── morphomnist/
+		├── args.txt
+		├── t10k-images-idx3-ubyte.gz
+		├── t10k-labels-idx1-ubyte.gz
+		├── t10k-morpho.csv
+		├── train-images-idx3-ubyte.gz
+		├── train-labels-idx1-ubyte.gz
+		└── train-morpho.csv
 improved_diffusion/
 scripts/
 OTHER FILES
@@ -82,9 +83,10 @@ import io
 ```
 to:
 ```
-from datasets.morphomnist import io
+from datasets import io
 # import io
 ```
+To import this `io.py`, please add empty `datasets/__init__.py`.
 
 3. Create Dataset in `improved_diffusion/image_datasets.py`
 
@@ -93,11 +95,15 @@ from datasets.morphomnist import io
 A = th.tensor([[0, 1], [0, 0]], dtype=th.float32)
 ```
 
-5. For each of the training and testing scripts in `scripts\morhomnist` and other(`scripts\` subfolders) set `--data-dir` argument to `../../datasets/`.
+5. For each of the training and testing scripts in `scripts\morhomnist`(unfortunate typo in the original code) and other(`scripts\` subfolders) set `--data-dir` argument to `../../datasets/morphomnist`.
 
-6. Specify hyperparameters and run training script:
+6. Navigate to the `scripts` folder, specify hyperparameters or run the default training script:
 ```
-./train_[dataset]_causaldae.sh
+./[dataset]/train_[dataset]_causaldae.sh
+```
+Example (the dashed lines are reversed because the script is run from Windows PowerShell):
+```
+.\morhomnist\train_mnist_causaldae.sh
 ```
 
 7. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.

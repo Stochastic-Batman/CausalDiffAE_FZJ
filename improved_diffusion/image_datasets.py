@@ -11,8 +11,8 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from typing import Tuple
 
-# from datasets.morphomnist import io
-import io
+from datasets import io
+# import io
 from torchvision import transforms
 
 
