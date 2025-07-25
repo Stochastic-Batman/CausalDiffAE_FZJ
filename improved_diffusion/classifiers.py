@@ -11,62 +11,33 @@ from image_datasets import MorphoMNISTLike, get_dataloader_morphomnist
 from improved_diffusion.nn import GaussianConvEncoderClf
 
 
-
-# class Classifier(nn.Module):
-#     def __init__(self, in_channel, in_dim, h_dim, out_dim):
-#         self.in_channel = in_channel
-        
-#         self.in_dim = in_dim
-#         self.h_dim = h_dim
-#         self.out_dim = out_dim
-        
-#         self.net = 
-        
-#     def forward(self, x):
-#         pass
-
-
 class Trainer:
     def __init__(self, model, optimizer, train_loader, val_loader, gpu_id=0, dataset="morphomnist", save_every=None):
-        
         self.gpu_id = gpu_id
         self.save_every = save_every
-        
-        # self.model = model.to(gpu_id)
         self.optim = optimizer
-
         self.train_loader = train_loader
         self.val_loader = val_loader
-
         self.dataset = dataset
         self.model = model.to('cuda:0')
-        # self.model = DDP(self.model, device_ids=[gpu_id], find_unused_parameters=True)
 
 
     def train_one_epoch(self):
         total_loss = 0
-        # loss_ema = None
-        for batch_idx, data in enumerate(self.train_loader):        
+        for batch_idx, data in enumerate(self.train_loader):
             if self.dataset == "morphomnist":
                 X, label_dict = data
                 t = label_dict["c"][:, 1].unsqueeze(1)
-                # print(t.shape)
-                # exit(0)
             else:
                 X = data[0]
                 c = data[1]
 
             self.optim.zero_grad()
-
             X = X.to('cuda:0')
             out = self.model(X)
-            
             loss = nn.MSELoss()(out, t.type(torch.float32).view(-1, 1).to("cuda:0"))
-            
             loss.backward()
-
             self.optim.step()
-
             total_loss += loss
 
         m = len(self.train_loader)
