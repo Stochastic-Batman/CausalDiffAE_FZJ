@@ -95,7 +95,7 @@ To import this `io.py`, please add empty `datasets/__init__.py`.
 A = th.tensor([[0, 1], [0, 0]], dtype=th.float32)
 ```
 
-5. For each of the training and testing scripts in `scripts\morhomnist`(unfortunate typo in the original code) and other(`scripts\` subfolders) set `--data-dir` argument to `../../datasets/morphomnist`.
+5. For each of the training and testing scripts in `scripts\morhomnist`(unfortunate typo in the original code) and other(`scripts\` subfolders) set `--data-dir` argument to `../datasets/morphomnist`.
 
 6. Navigate to the `scripts` folder, specify hyperparameters or run the default training script:
 ```
