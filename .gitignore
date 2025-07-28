@@ -8,3 +8,5 @@ causaldiffae_venv/**
 casualdiffae_venv/
 casualdiffae_venv/*
 casualdiffae_venv/**
+**/__pycache__/**
+results/**
