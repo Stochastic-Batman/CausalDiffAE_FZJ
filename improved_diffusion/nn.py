@@ -18,10 +18,10 @@ class GaussianConvEncoder(nn.Module):
                  latent_dim: int,
                  hidden_dims: List = None,
                  beta: int = 4,
-                 gamma:float = 1000.,
+                 gamma: float = 1000.,
                  max_capacity: int = 25,
                  Capacity_max_iter: int = 1e5,
-                 loss_type:str = 'B',
+                 loss_type: str = 'B',
                  num_vars=4,
                  **kwargs) -> None:
         super().__init__()
@@ -54,8 +54,10 @@ class GaussianConvEncoder(nn.Module):
             in_channels = h_dim
 
         self.encoder = nn.Sequential(*modules)
-        self.fc_mu = nn.Linear(hidden_dims[-1]*4, latent_dim)
-        self.fc_var = nn.Linear(hidden_dims[-1]*4, latent_dim)
+        hidden_dims_last = hidden_dims[-1]
+        print("fc_mu dimensions: ", hidden_dims_last, latent_dim)
+        self.fc_mu = nn.Linear(hidden_dims_last, latent_dim)
+        self.fc_var = nn.Linear(hidden_dims_last, latent_dim)
 
         for i in range(len(hidden_dims) - 1):
             modules.append(
@@ -98,11 +100,13 @@ class GaussianConvEncoder(nn.Module):
         :return: (Tensor) List of latent codes
         """
 
+        print("input shape: ", input.size())
         result = self.encoder(input)
         result = th.flatten(result, start_dim=1)
 
         # Split the result into mu and var components
         # of the latent Gaussian distribution
+        print("result shape: ", result.shape)
         mu = self.fc_mu(result)
         log_var = self.fc_var(result)
         log_var = F.softplus(log_var) + 1e-8
