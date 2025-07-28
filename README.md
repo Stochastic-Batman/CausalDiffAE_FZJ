@@ -97,7 +97,19 @@ A = th.tensor([[0, 1], [0, 0]], dtype=th.float32)
 
 5. For each of the training and testing scripts in `scripts\morhomnist`(unfortunate typo in the original code) and other(`scripts\` subfolders) set `--data-dir` argument to `../datasets/morphomnist`.
 
-6. Navigate to the `scripts` folder, specify hyperparameters or run the default training script:
+6. In `improved_diffusion/nn.py`, find the `GaussianConvEncoder` class. In the ``__init__`` method, change:
+```
+self.fc_mu = nn.Linear(hidden_dims[-1]*4, latent_dim)
+self.fc_var = nn.Linear(hidden_dims[-1]*4, latent_dim)
+```
+to:
+```
+hidden_dims_last = hidden_dims[-1
+self.fc_mu = nn.Linear(hidden_dims_last, latent_dim)
+self.fc_var = nn.Linear(hidden_dims_last, latent_dim)
+```
+
+7. Navigate to the `scripts` folder, specify hyperparameters or run the default training script:
 ```
 ./[dataset]/train_[dataset]_causaldae.sh
 ```
@@ -106,19 +118,19 @@ Example (the dashed lines are reversed because the script is run from Windows Po
 .\morhomnist\train_mnist_causaldae.sh
 ```
 
-7. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.
+8. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.
 
-8. To train anti-causal classifiers to evaluate effectiveness, navigate to `scripts\morhomnist` (or whichever example you are experimenting with) and run:
+9. To train anti-causal classifiers to evaluate effectiveness, navigate to `scripts\morhomnist` (or whichever example you are experimenting with) and run:
 ```
 python [dataset]_classifier.py
 ```
 
-9. For counterfactual generation, run the following script with the specified causal graph:
+10. For counterfactual generation, run the following script with the specified causal graph:
 ```
 ./test_[dataset]_causaldae.sh
 ```
 
-10. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
+11. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
 
 ### Data acknowledgements
 Experiments are run on the following datasets to evaluate our model:
