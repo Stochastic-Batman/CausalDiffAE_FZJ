@@ -25,21 +25,15 @@ This model uses the MorphoMNIST dataset with the intensity attribute, which is n
 
 2. Clone [DeepSCM repository](https://github.com/biomedia-mira/deepscm?tab=readme-ov-file).
 
-3. Copy the `Morpho-MNIST/morphomnist` subfolder into the `deepscm` directory so it is located at `deepscm/morphomnist`.
-
-4. Install requirements (if you encounter Python version issues, use Python 3.7.2) with either `pip install -r requirements.txt` or 
-```
-pip install numpy pandas pyro-ppl pytorch-lightning scikit-image scikit-learn scipy seaborn tensorboard torch torchvision
-```
+3. Copy the `Morpho-MNIST/morphomnist` subfolder into the `deepscm` directory so it is located at `deepscm/morphomnist`. If there is a collision (as there is a file `morphomnist` in `deepscm/`), simply overwrite the existing file with this folder.
 
 If you plan to use DeepSCM code for other purposes, sync the submodule `git submodule update --recursive --init`
 
-
-5. Open `deepscm/datasets/morphomnist/transforms.py` (`deepscm/morphomnist` and `deepscm/datasets/morphomnist` are separate folders, great naming!) and on line 11, remove the `multichannel=False` argument.  
+4. Open `deepscm/datasets/morphomnist/transforms.py` (`deepscm/morphomnist` and `deepscm/datasets/morphomnist` are separate folders, great naming!) and on line 11, remove the `multichannel=False` argument.  
 Change: ```disk = transform.pyramid_reduce(mag_disk, downscale=scale, order=1, multichannel=False)```
-to: ```disk = transform.pyramid_reduce(mag_disk, downscale=scale, order=1)``` 
+to: ```disk = transform.pyramid_reduce(mag_disk, downscale=scale, order=1)```
 
-6. To generate a synthetic MorphoMNIST dataset with the intensity attribute, run the following command, replacing the paths with those appropriate to your environment:
+5. To generate a synthetic MorphoMNIST dataset with the intensity attribute, run the following command, replacing the paths with those appropriate to your environment:
 ```
 python -m deepscm.datasets.morphomnist.create_synth_thickness_intensity_data --data-dir /path/to/morphomnist -o /path/to/dataset
 ```
