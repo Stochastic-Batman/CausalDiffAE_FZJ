@@ -8,7 +8,6 @@ import torch as th
 import torch.distributed as dist
 from torch.nn.parallel.distributed import DistributedDataParallel as DDP
 from torch.optim import AdamW
-from torchvision.utils import save_image
 
 from . import dist_util, logger
 from .fp16_util import (
@@ -323,9 +322,7 @@ class TrainLoop:
                 logger.log(f"saving model {rate}...")
                 if not rate:
                     filename = f"model{(self.step+self.resume_step):06d}.pt"
-                    # filename = f"model_checkpoint.pt"
                 else:
-                    # filename = f"ema_{rate}_{(self.step+self.resume_step):06d}.pt"
                     filename = f"ema_checkpoint.pt"
                 # print(get_blob_logdir())
                 with bf.BlobFile(bf.join(get_blob_logdir(), filename), "wb") as f:
@@ -334,13 +331,6 @@ class TrainLoop:
         save_checkpoint(0, self.master_params)
         for rate, params in zip(self.ema_rate, self.ema_params):
             save_checkpoint(rate, params)
-
-        # if dist.get_rank() == 0:
-        #     with bf.BlobFile(
-        #         bf.join(get_blob_logdir(), f"opt{(self.step+self.resume_step):06d}.pt"),
-        #         "wb",
-        #     ) as f:
-        #         th.save(self.opt.state_dict(), f)
 
         dist.barrier()
 

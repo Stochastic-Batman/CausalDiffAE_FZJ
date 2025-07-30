@@ -2,13 +2,7 @@
 
 This fork contains the source code for the implementation of "Causal Diffusion Autoencoders: Toward Counterfactual Generation via Diffusion Probabilistic Models" (ECAI 2024). The original code lacked a clear README file, making it unclear how to obtain the desired dataset and where to find the appropriate files. This fork aims to address those issues.
 
-This README describes the process of transforming [the original source code](https://github.com/Akomand/CausalDiffAE?tab=readme-ov-file) into this repository and provides a step-by-step guide for running the code on the MorphoMNIST dataset.
-
-## Intro
-
-Diffusion probabilistic models (DPMs) have become the state-of-the-art in high-quality image generation. However, DPMs have an arbitrary noisy latent space with no interpretable or controllable semantics. Although there has been significant research effort to improve image sample quality, there is little work on representation-controlled generation using diffusion models. Specifically, causal modeling and controllable counterfactual generation using DPMs is an underexplored area. In this work, we propose CausalDiffAE, a diffusion-based causal representation learning framework to enable counterfactual generation according to a specified causal model. Our key idea is to use an encoder to extract high-level semantically meaningful causal variables from high-dimensional data and model stochastic variation using reverse diffusion. We propose a causal encoding mechanism that maps high-dimensional data to causally related latent factors and parameterize the causal mechanisms among latent factors using neural networks. To enforce the disentanglement of causal variables, we formulate a variational objective and leverage auxiliary label information in a prior to regularize the latent space. We propose a DDIM-based counterfactual generation procedure subject to do-interventions. Finally, to address the limited label supervision scenario, we also study the application of CausalDiffAE when a part of the training data is unlabeled, which also enables granular control over the strength of interventions in generating counterfactuals during inference. We empirically show that CausalDiffAE learns a disentangled latent space and is capable of generating high-quality counterfactual images.
-
-![Model](causaldiffae.png)
+This README describes the process of transforming [the original source code](https://github.com/Akomand/CausalDiffAE?tab=readme-ov-file) into this repository and provides a step-by-step guide for running the code on the MorphoMNIST dataset. Note that if you clone this repository, every file that needed to be changed has already been changed. Except for dataset generation, everything is ready.
 
 # Getting environment up and running
 1. Create a virtual environment: `python3.12 -m venv causaldiffae_venv`
@@ -70,7 +64,7 @@ scripts/
 OTHER FILES
 ```
 
-Copy [`io.py` from Morpho-MNIST repo](https://github.com/dccastro/Morpho-MNIST/blob/main/morphomnist/io.py) under `datasets/` folder and change:
+Copy [`io.py` from Morpho-MNIST repo](https://github.com/dccastro/Morpho-MNIST/blob/main/morphomnist/io.py) under `datasets/` folder and in `improved_diffusion/image_datasets.py` change:
 ```
 # from datasets.morphomnist import io
 import io
@@ -82,16 +76,14 @@ from datasets import io
 ```
 To import this `io.py`, please add empty `datasets/__init__.py`.
 
-3. Create Dataset in `improved_diffusion/image_datasets.py`
-
-4. Specify Causal Adjacency Matrix A in `improved_diffusion/unet.py`
+3. Specify Causal Adjacency Matrix A in `improved_diffusion/unet.py`
 ```
 A = th.tensor([[0, 1], [0, 0]], dtype=th.float32)
 ```
 
-5. For each of the training and testing scripts in `scripts\morhomnist`(unfortunate typo in the original code) and other(`scripts\` subfolders) set `--data-dir` argument to `../datasets/morphomnist`.
+4. For each of the training and testing scripts in `scripts\morhomnist`(unfortunate typo in the original code) and other(`scripts\` subfolders) set `--data-dir` argument to `../datasets/morphomnist`.
 
-6. In `improved_diffusion/nn.py`, find the `GaussianConvEncoder` class. In the ``__init__`` method, change:
+5. In `improved_diffusion/nn.py`, find the `GaussianConvEncoder` class. In the ``__init__`` method, change:
 ```
 self.fc_mu = nn.Linear(hidden_dims[-1]*4, latent_dim)
 self.fc_var = nn.Linear(hidden_dims[-1]*4, latent_dim)
@@ -103,7 +95,7 @@ self.fc_mu = nn.Linear(hidden_dims_last, latent_dim)
 self.fc_var = nn.Linear(hidden_dims_last, latent_dim)
 ```
 
-7. Navigate to the `scripts` folder, specify hyperparameters or run the default training script:
+6. Navigate to the `scripts` folder, specify hyperparameters or run the default training script:
 ```
 ./[dataset]/train_[dataset]_causaldae.sh
 ```
@@ -112,19 +104,19 @@ Example (the dashed lines are reversed because the script is run from Windows Po
 .\morhomnist\train_mnist_causaldae.sh
 ```
 
-8. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.
+7. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.
 
-9. To train anti-causal classifiers to evaluate effectiveness, navigate to `scripts\morhomnist` (or whichever example you are experimenting with) and run:
+8. To train anti-causal classifiers to evaluate effectiveness, navigate to `scripts\morhomnist` (or whichever example you are experimenting with) and run:
 ```
 python [dataset]_classifier.py
 ```
 
-10. For counterfactual generation, run the following script with the specified causal graph:
+9. For counterfactual generation, run the following script with the specified causal graph:
 ```
 ./test_[dataset]_causaldae.sh
 ```
 
-11. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
+10. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
 
 ### Data acknowledgements
 Experiments are run on the following datasets to evaluate our model:

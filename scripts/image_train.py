@@ -23,7 +23,7 @@ def main():
 
     dist_util.setup_dist()
     logger.configure(dir = "../results/morphomnist")
-    logger.configure(dir = "../results/morphomnist/causaldiffae_masked_p=0.8")
+    logger.configure(dir = "../results/morphomnist/causaldiffae_masked_p")
     logger.configure(dir = "../results/morphomnist/diffae_unaligned")
 
     # logger.configure(dir = "../results/pendulum/causaldiffae_masked")
@@ -32,7 +32,7 @@ def main():
     # logger.configure(dir = "../results/pendulum/causaldiffae")
     # logger.configure(dir = "../results/pendulum/diffae_unaligned")
     
-    logger.configure(dir = "../results/circuit/causaldiffae_masked")
+    # logger.configure(dir = "../results/circuit/causaldiffae_masked")
     # logger.configure(dir = "../results/circuit/diffae_unaligned")
     # logger.configure(dir = "../results/circuit/diffae")
     # logger.configure(dir = "../results/circuit/label_conditional")
