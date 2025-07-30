@@ -39,9 +39,7 @@ class HumanOutputFormat(KVWriter, SeqWriter):
             self.file = open(filename_or_file, "wt")
             self.own_file = True
         else:
-            assert hasattr(filename_or_file, "read"), (
-                "expected file or str, got %s" % filename_or_file
-            )
+            assert hasattr(filename_or_file, "read"), ("expected file or str, got %s" % filename_or_file)
             self.file = filename_or_file
             self.own_file = False
 
@@ -450,7 +448,7 @@ def configure(dir=None, format_strs=None, comm=None, log_suffix=""):
             tempfile.gettempdir(),
             datetime.datetime.now().strftime("openai-%Y-%m-%d-%H-%M-%S-%f"),
         )
-    # dir = "../results/morphomnist"
+    dir = "../results/morphomnist"
     assert isinstance(dir, str)
     dir = os.path.expanduser(dir)
     os.makedirs(os.path.expanduser(dir), exist_ok=True)

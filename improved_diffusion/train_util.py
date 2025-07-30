@@ -105,7 +105,6 @@ class TrainLoop:
 
         if th.cuda.is_available():
             self.use_ddp = True
-
             # DDP WRAPPER WHEN USING MULTIPLE GPUs
             self.ddp_model = DDP(
                 self.model,
@@ -126,7 +125,6 @@ class TrainLoop:
 
     def _load_and_sync_parameters(self):
         resume_checkpoint = find_resume_checkpoint() or self.resume_checkpoint
-
         if resume_checkpoint:
             self.resume_step = parse_resume_step_from_filename(resume_checkpoint)
             if dist.get_rank() == 1:
@@ -174,7 +172,6 @@ class TrainLoop:
 
     def linear_kl_weight_scheduler(self, step, total_steps, initial, final):
         """Linear scheduler"""
-
         if step >= total_steps:
             return final
         if step <= 0:
@@ -188,15 +185,14 @@ class TrainLoop:
 
     # RUN THE TRAINING LOOP
     def run_loop(self):
-
         # THIS IS THE TOTAL NUMBER OF ITERATIONS
+        logger.log("entering training loop...")
+        counter = 0
         while (
-            not self.lr_anneal_steps
-            or self.step + self.resume_step < self.lr_anneal_steps
+            (not self.lr_anneal_steps
+            or self.step + self.resume_step < self.lr_anneal_steps) and counter < 10
         ):
-
             batch, cond = next(self.data)
-            
 
             self.run_step(batch, cond) # RUN FIRST STEP WITH BATCH AND CONDITION (IF ANY)
             if self.step % self.log_interval == 0:
@@ -209,9 +205,11 @@ class TrainLoop:
             self.step += 1
 
             # KL WEIGHT SCHEDULER
-            weight = self.linear_kl_weight_scheduler(self.step, 50000, 0.0, 1.0)
+            weight = self.linear_kl_weight_scheduler(self.step, 20, 0.0, 1.0)
             self.diffusion.kl_weight = weight
-            
+            logger.log(f"step {counter} complete!")
+            logger.log(f"{self.step} + {self.resume_step} < {self.lr_anneal_steps} | {not self.lr_anneal_steps}")
+            counter += 1
 
         # Save the last checkpoint if it wasn't already saved.
         if (self.step - 1) % self.save_interval != 0:
@@ -318,12 +316,12 @@ class TrainLoop:
     def save(self):
         def save_checkpoint(rate, params):
             state_dict = self._master_params_to_state_dict(params)
-            if dist.get_rank() == 1:
-                logger.log(f"saving model {rate}...")
+            if dist.get_rank() == 0:
                 if not rate:
-                    filename = f"model{(self.step+self.resume_step):06d}.pt"
+                    filename = f"model{(self.step + self.resume_step):06d}.pt"
                 else:
                     filename = f"ema_checkpoint.pt"
+                logger.log(f"saving model in {filename}...")
                 # print(get_blob_logdir())
                 with bf.BlobFile(bf.join(get_blob_logdir(), filename), "wb") as f:
                     th.save(state_dict, f)

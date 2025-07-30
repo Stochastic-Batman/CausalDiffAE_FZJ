@@ -32,7 +32,7 @@ def model_and_diffusion_defaults():
         learn_sigma=False,
         sigma_small=False,
         class_cond=False,
-        diffusion_steps=1000,
+        diffusion_steps=20,
         noise_schedule="linear",
         timestep_respacing="",
         use_kl=False,
@@ -283,7 +283,7 @@ def sr_create_model(
 
 def create_gaussian_diffusion(
     *,
-    steps=1000,
+    steps=100,
     learn_sigma=False,
     sigma_small=False,
     noise_schedule="linear",

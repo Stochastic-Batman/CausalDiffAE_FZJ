@@ -31,7 +31,7 @@ def main():
     # logger.configure(dir = "../results/pendulum/diffae_aligned")
     # logger.configure(dir = "../results/pendulum/causaldiffae")
     # logger.configure(dir = "../results/pendulum/diffae_unaligned")
-    
+
     # logger.configure(dir = "../results/circuit/causaldiffae_masked")
     # logger.configure(dir = "../results/circuit/diffae_unaligned")
     # logger.configure(dir = "../results/circuit/diffae")
@@ -91,7 +91,7 @@ def create_argparser():
         microbatch=-1,  # -1 disables microbatches
         ema_rate="0.9999",  # comma-separated list of EMA values
         log_interval=10,
-        save_interval=5000,
+        save_interval=10,
         resume_checkpoint="",
         use_fp16=False,
         fp16_scale_growth=1e-3,
