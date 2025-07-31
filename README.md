@@ -170,7 +170,7 @@ Example (the dashed lines are reversed because the script is run from Windows Po
 ```
 .\morhomnist\train_mnist_causaldae.sh
 ```
-10. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.
+10. For classifier-free paradigm training, set `masking=True` in hyperpxarameter configs.
 
 
 11. To train anti-causal classifiers to evaluate effectiveness, navigate to `scripts\morhomnist` (or whichever example you are experimenting with) and run:
@@ -180,7 +180,11 @@ python [dataset]_classifier.py
 
 12. For counterfactual generation, run the following script with the specified causal graph:
 ```
-./test_[dataset]_causaldae.sh
+./morhomnist/test_[dataset]_causaldae.sh
+```
+or
+```
+python image_causaldae_test.py --data_dir ../datasets/morphomnist --model_path ../results/morphomnist/causaldiffae/model000100.pt --n_vars 2 --in_channels 1 --image_size 28 --num_channels 128 --num_res_blocks 3 --learn_sigma False --class_cond True --causal_modeling True --rep_cond True --diffusion_steps 1000 --batch_size 16 --timestep_respacing 250 --use_ddim True
 ```
 
 13. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
