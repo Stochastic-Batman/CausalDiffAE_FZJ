@@ -4,7 +4,7 @@ from sklearn import ensemble
 from sklearn import metrics
 from sklearn import linear_model
 import torch
-from munkres import Munkres
+from .munkres import Munkres
 from scipy.optimize import linear_sum_assignment
 
 

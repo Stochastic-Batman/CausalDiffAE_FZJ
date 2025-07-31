@@ -27,7 +27,7 @@ from torchvision.utils import save_image
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 # from datasets.generators import pendulum_script as pd
-from datasets.generators import morphomnist_script as ms  # how am I supposed to figure out what the hell is the generator script?!
+# from datasets.generators import morphomnist_script as ms  # how am I supposed to figure out what the hell is the generator script? !
 from improved_diffusion import metrics as mt
 from torchmetrics.image.fid import FrechetInceptionDistance
 import torchvision.models as models

@@ -10,7 +10,7 @@ This README describes the process of transforming [the original source code](htt
 
 2. Install the requirements with this huge `pip install` command: 
 ```
-pip install absl-py==2.3.1 aiohappyeyeballs==2.6.1 aiohttp==3.12.14 aiosignal==1.4.0 attrs==25.3.0 blobfile==3.0.0 colorama==0.4.6 contourpy==1.3.2 cycler==0.12.1 filelock==3.18.0 fonttools==4.59.0 frozenlist==1.7.0 fsspec==2025.5.1 grpcio==1.73.1 idna==3.10 imageio==2.37.0 Jinja2==3.1.6 joblib==1.5.1 kiwisolver==1.4.8 lazy_loader==0.4 lightning-utilities==0.14.3 lxml==6.0.0 Markdown==3.8.2 MarkupSafe==3.0.2 matplotlib==3.10.3 mpi4py==4.1.0 mpmath==1.3.0 multidict==6.6.3 networkx==3.5 numpy==2.3.1 opt_einsum==3.4.0 packaging==25.0 pandas==2.3.1 pillow==11.3.0 propcache==0.3.2 protobuf==6.31.1 pycryptodomex==3.23.0 pyparsing==3.2.3 pyro-api==0.1.2 pyro-ppl==1.9.1 python-dateutil==2.9.0.post0 pytorch-lightning==2.5.2 pytz==2025.2 PyYAML==6.0.2 scikit-image==0.25.2 scikit-learn==1.7.1 scipy==1.16.0 seaborn==0.13.2 setuptools==80.9.0 six==1.17.0 sympy==1.14.0 tensorboard==2.20.0 tensorboard-data-server==0.7.2 threadpoolctl==3.6.0 tifffile==2025.6.11 torch==2.7.1 torchmetrics==1.8.0 torchvision==0.22.1 tqdm==4.67.1 typing_extensions==4.14.1 tzdata==2025.2 urllib3==2.5.0 Werkzeug==3.1.3 yarl==1.20.1
+pip install absl-py==2.3.1 aiohappyeyeballs==2.6.1 aiohttp==3.12.14 aiosignal==1.4.0 attrs==25.3.0 blobfile==3.0.0 colorama==0.4.6 contourpy==1.3.2 cycler==0.12.1 filelock==3.18.0 fonttools==4.59.0 frozenlist==1.7.0 fsspec==2025.5.1 grpcio==1.73.1 idna==3.10 imageio==2.37.0 Jinja2==3.1.6 joblib==1.5.1 kiwisolver==1.4.8 lazy_loader==0.4 lightning-utilities==0.14.3 lxml==6.0.0 Markdown==3.8.2 MarkupSafe==3.0.2 matplotlib==3.10.3 mpi4py==4.1.0 mpmath==1.3.0 multidict==6.6.3 networkx==3.5 numpy==2.3.1 opt_einsum==3.4.0 packaging==25.0 pandas==2.3.1 pillow==11.3.0 propcache==0.3.2 protobuf==6.31.1 pycryptodomex==3.23.0 pyparsing==3.2.3 pyro-api==0.1.2 pyro-ppl==1.9.1 python-dateutil==2.9.0.post0 pytorch-lightning==2.5.2 pytz==2025.2 PyYAML==6.0.2 scikit-image==0.25.2 scikit-learn==1.7.1 scipy==1.16.0 seaborn==0.13.2 setuptools==80.9.0 six==1.17.0 sympy==1.14.0 tensorboard==2.20.0 tensorboard-data-server==0.7.2 threadpoolctl==3.6.0 tifffile==2025.6.11 torch==2.7.1 torch-fidelity==0.3.0 torchmetrics==1.8.0 torchvision==0.22.1 tqdm==4.67.1 typing_extensions==4.14.1 tzdata==2025.2 urllib3==2.5.0 Werkzeug==3.1.3 yarl==1.20.1
 ```
 
 # MorphoMNIST Setup
@@ -39,7 +39,7 @@ python -m deepscm.datasets.morphomnist.create_synth_thickness_intensity_data --d
 
 ## After getting the synthetic MorphoMNIST dataset, you can remove the entire `deepscm` from your computer.
 
-# Getting CausalDiffAE up and running
+# Training
 
 1. Clone the repo: 
 ```
@@ -173,12 +173,20 @@ Example (the dashed lines are reversed because the script is run from Windows Po
 10. For classifier-free paradigm training, set `masking=True` in hyperpxarameter configs.
 
 
-11. To train anti-causal classifiers to evaluate effectiveness, navigate to `scripts\morhomnist` (or whichever example you are experimenting with) and run:
+11. To train anti-causal classifiers to evaluate effectiveness, navigate to `scripts/morhomnist` (or whichever example you are experimenting with) and run:
 ```
 python [dataset]_classifier.py
 ```
 
-12. For counterfactual generation, run the following script with the specified causal graph:
+# Testing & Counterfactual Generation
+
+1. In `scripts/image_causaldae_test.py` comment out all the import that start with `from datasets.generators import ...`.
+
+
+2. In `improved_diffusion/metrics.py`, change `from munkres import Munkres` to `from .munkres import Munkres` (notice dot in front `munkres` for relative import). 
+
+
+3. For counterfactual generation, run the following script with the specified causal graph:
 ```
 ./morhomnist/test_[dataset]_causaldae.sh
 ```
@@ -187,7 +195,7 @@ or
 python image_causaldae_test.py --data_dir ../datasets/morphomnist --model_path ../results/morphomnist/causaldiffae/model000100.pt --n_vars 2 --in_channels 1 --image_size 28 --num_channels 128 --num_res_blocks 3 --learn_sigma False --class_cond True --causal_modeling True --rep_cond True --diffusion_steps 1000 --batch_size 16 --timestep_respacing 250 --use_ddim True
 ```
 
-13. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
+4. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
 
 ### Data acknowledgements
 Experiments are run on the following dataset to evaluate our model:
