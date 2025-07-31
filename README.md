@@ -206,7 +206,13 @@ and add ``pass`` instead of it.
 6. From `scripts/image_causaldae_test.py` remove `load_classifier = True`. Add `load_classifier=False` to the default dict of `create_argparser()` in the same file. In the `main` method, add `load_classifier` after `args = create_argparser().parse_args()`.
 
 
-7. For counterfactual generation, run the following script with the specified causal graph:
+7. Do the same for `eval_disentanglement = False` and `generate_interventions = True`.
+
+
+8. At this point, it would probably be a good idea to simply copy `scripts/image_causaldae_test.py` from this fork.
+
+
+9. For counterfactual generation, run the following script with the specified causal graph:
 ```
 ./morhomnist/test_[dataset]_causaldae.sh
 ```
@@ -215,7 +221,7 @@ or
 python image_causaldae_test.py --data_dir ../datasets/morphomnist --model_path ../results/morphomnist/model000100.pt --n_vars 2 --in_channels 1 --image_size 28 --num_channels 128 --num_res_blocks 3 --learn_sigma False --class_cond True --causal_modeling True --rep_cond True --diffusion_steps 1000 --batch_size 16 --timestep_respacing 250 --use_ddim True
 ```
 
-8. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
+10. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
 
 ### Data acknowledgements
 Experiments are run on the following dataset to evaluate our model:

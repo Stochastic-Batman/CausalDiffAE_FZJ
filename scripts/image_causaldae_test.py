@@ -4,6 +4,9 @@ numpy array. This can be used to produce samples for FID evaluation.
 """
 
 import sys
+
+from tensorflow.python.saved_model.pywrap_saved_model.constants import TRAIN_OP_KEY
+
 sys.path.append('../')
 import argparse
 import os
@@ -41,6 +44,8 @@ fid = FrechetInceptionDistance(feature=64)
 def main():
     args = create_argparser().parse_args()
     load_classifier = args.load_classifier
+    eval_disentanglement = args.eval_disentanglement
+    generate_interventions = args.generate_interventions
     # print(args.data_dir)
     dist_util.setup_dist()
     logger.configure()
@@ -78,11 +83,8 @@ def main():
     logger.log("test...")
     logger.log("sampling...")
 
-    # FLAGS 
-    eval_disentanglement = False
+    # FLAGS
     traversal = False
-    generate_interventions = True
-    
     
     all_images = []
     all_labels = []
@@ -129,6 +131,7 @@ def main():
     w = None
 
     if load_classifier:
+        logger.log("entering load_classifier...")
         # clf = GaussianConvEncoderClf(in_channels=4, latent_dim=512, num_vars=4)
         # clf.load_state_dict(th.load('../results/pendulum/classifier/classifier_angle_best.pth'))
         # clf.eval()
@@ -158,8 +161,9 @@ def main():
             clf4.load_state_dict(th.load('../results/pendulum/classifier/classifier_shadowpos_best.pth'))
             clf4.eval()
         # exit(0)
-        
+
     if eval_disentanglement:
+        logger.log("entering eval_disentanglement...")
         if "morphomnist" in args.data_dir:
             rep_train = np.empty((60000, 512))
             y_train = np.empty((60000, 2))
@@ -558,14 +562,11 @@ def main():
                 all_images_arm.extend([sample.cpu().numpy() for sample in gathered_samples])
 
             break
-        
-        
-    
-        generate_interventions = True
-        if generate_interventions:
-            if "morphomnist" in args.data_dir:
-                save_image(batch[:32], '../results/morphomnist/causaldiffae/original.png')
 
+        if generate_interventions:
+            logger.log("generating interventions...")
+            if "morphomnist" in args.data_dir:
+                save_image(batch[:32], '../results/morphomnist/original.png')
 
                 # SAVE THICKNESS INTERVENED IMAGE
                 arr = np.concatenate(all_images_thickness, axis=0)
@@ -574,7 +575,7 @@ def main():
 
                 temp = th.tensor(temp, dtype=th.float32)
                 # save_image(temp, '../results/morphomnist/causaldiffae_masked/intervene_thickness.png')
-                save_image(temp, f'../results/morphomnist/causaldiffae/intervene_thickness_w={w}.png')
+                save_image(temp, f'../results/morphomnist/intervene_thickness_w={w}.png')
 
                 # SAVE INTENSITY INTERVENED IMAGE
                 arr = np.concatenate(all_images_intensity, axis=0)
@@ -583,7 +584,7 @@ def main():
 
                 temp = th.tensor(temp, dtype=th.float32)
                 # save_image(temp, '../results/morphomnist/causaldiffae_masked/intervene_intensity.png')
-                save_image(temp, f'../results/morphomnist/causaldiffae/intervene_intensity_w={w}.png')
+                save_image(temp, f'../results/morphomnist/intervene_intensity_w={w}.png')
             elif "pendulum" in args.data_dir:
                 save_image(batch[:16], '../results/pendulum/causaldiffae_masked/original.png')
 
@@ -733,7 +734,9 @@ def create_argparser():
         rep_cond=False,
         in_channels=3,
         n_vars=2,
-        load_classifier=False,  # added this
+        load_classifier=False,  # added arguments after this
+        eval_disentanglement=True,
+        generate_interventions=True,
     )
     defaults.update(model_and_diffusion_defaults())
     parser = argparse.ArgumentParser()
