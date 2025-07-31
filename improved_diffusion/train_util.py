@@ -51,7 +51,7 @@ class TrainLoop:
         causal_modeling=False,
         flow_based=False,
         in_channels=3,
-        masking=False
+        masking=False  # this is redundant, only use is self.masking = masking, basically it has no implementation
     ):
         self.model = model
         self.diffusion = diffusion

@@ -170,13 +170,17 @@ Example (the dashed lines are reversed because the script is run from Windows Po
 ```
 .\morhomnist\train_mnist_causaldae.sh
 ```
-10. For classifier-free paradigm training, set `masking=True` in hyperpxarameter configs.
+10. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.
+
+**Note:** this statement is from README of the original repository. However, it turns out, `masking` is not used anywhere except `self.masking = masking`. Basically, this line has no effect on the code.
 
 
-11. To train anti-causal classifiers to evaluate effectiveness, navigate to `scripts/morhomnist` (or whichever example you are experimenting with) and run:
+11. To train anti-causal classifiers to evaluate effectiveness, navigate to `improved_diffusion` (or whichever example you are experimenting with) and run:
 ```
 python [dataset]_classifier.py
 ```
+
+you might need to import and use different dataloaders (by default, `get_dataloader_pendulum` was loaded, I had to load `get_dataloader_morphomnist`).
 
 # Testing & Counterfactual Generation
 

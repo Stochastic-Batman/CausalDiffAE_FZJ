@@ -7,7 +7,7 @@ from torchmetrics import Accuracy
 import torch.nn.functional as F
 import sys
 sys.path.append("../../")
-from image_datasets import MorphoMNISTLike, get_dataloader_pendulum
+from image_datasets import MorphoMNISTLike, get_dataloader_morphomnist
 from improved_diffusion.nn import GaussianConvEncoder
 
 
@@ -150,8 +150,8 @@ if __name__ == "__main__":
     model.to("cuda:0")
     
     # init dataset
-    train_loader = get_dataloader_pendulum(path="../datasets/pendulum", batch_size=64, split_set="train", shard=0, num_shards=1)
-    val_loader = get_dataloader_pendulum(path="../datasets/pendulum", batch_size=64, split_set="test", shard=0, num_shards=1)
+    train_loader = get_dataloader_morphomnist(path="../datasets/morphomnist", batch_size=64, split_set="train", shard=0, num_shards=1)
+    val_loader = get_dataloader_morphomnist(path="../datasets/morphomnist", batch_size=64, split_set="test", shard=0, num_shards=1)
 
 
     optim = torch.optim.Adam(model.parameters(), lr=1e-3)
