@@ -186,16 +186,29 @@ python [dataset]_classifier.py
 2. In `improved_diffusion/metrics.py`, change `from munkres import Munkres` to `from .munkres import Munkres` (notice dot in front `munkres` for relative import). 
 
 
-3. For counterfactual generation, run the following script with the specified causal graph:
+3. In every test script under `scripts/morhomnist`, change the path `../results/morphomnist/causaldiffae` to `../results/morphomnist`.
+
+
+4. Comment out the entire body of 
+```
+elif "pendulum" in args.data_dir: 
+    A = th.tensor([[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=th.float32).to(batch.device) 
+```
+and add ``pass`` instead of it.
+
+5. There might be several lines with `z = reparameterize(z_post, var)`, but `z_post` is commented on top of them. Uncomment them.
+
+
+6. For counterfactual generation, run the following script with the specified causal graph:
 ```
 ./morhomnist/test_[dataset]_causaldae.sh
 ```
 or
 ```
-python image_causaldae_test.py --data_dir ../datasets/morphomnist --model_path ../results/morphomnist/causaldiffae/model000100.pt --n_vars 2 --in_channels 1 --image_size 28 --num_channels 128 --num_res_blocks 3 --learn_sigma False --class_cond True --causal_modeling True --rep_cond True --diffusion_steps 1000 --batch_size 16 --timestep_respacing 250 --use_ddim True
+python image_causaldae_test.py --data_dir ../datasets/morphomnist --model_path ../results/morphomnist/model000100.pt --n_vars 2 --in_channels 1 --image_size 28 --num_channels 128 --num_res_blocks 3 --learn_sigma False --class_cond True --causal_modeling True --rep_cond True --diffusion_steps 1000 --batch_size 16 --timestep_respacing 250 --use_ddim True
 ```
 
-4. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
+7. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
 
 ### Data acknowledgements
 Experiments are run on the following dataset to evaluate our model:

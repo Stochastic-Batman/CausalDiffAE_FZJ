@@ -34,6 +34,7 @@ import torchvision.models as models
 import torch.nn as nn
 from improved_diffusion.nn import GaussianConvEncoderClf
 from torch.distributions.gamma import Gamma
+# pandas added because pd.
 
 fid = FrechetInceptionDistance(feature=64)
 
@@ -273,8 +274,8 @@ def main():
 
                 mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
                 var = th.ones(mu.shape).to(mu.device) * 0.001
-                # z_pre = model.causal_mask.causal_masking(mu, A)
-                # z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
+                z_pre = model.causal_mask.causal_masking(mu, A)
+                z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
 
                 z = reparameterize(z_post, var)
                 z = z.reshape(-1, 512)
@@ -297,8 +298,8 @@ def main():
 
                 mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
                 var = th.ones(mu.shape).to(mu.device) * 0.001
-                # z_pre = model.causal_mask.causal_masking(mu, A)
-                # z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
+                z_pre = model.causal_mask.causal_masking(mu, A)
+                z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
 
                 z = reparameterize(z_post, var)
                 
@@ -321,86 +322,11 @@ def main():
 
             batch, cond = next(data)
 
-            # save_image([batch[0]], './new_test.png')
-            # print(cond["c"][0])
-            # print(cond["real"][0])
-            # exit(0)
             count += 1
             # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
             if "morphomnist" in args.data_dir:
                 A = th.tensor([[0, 1], [0, 0]], dtype=th.float32).to(batch.device)
 
-
-                # EVALUTING EFFECTIVENESS CODE
-                # MORPHOMNIST ANGLE INTERVENTIONS
-                # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
-                # var = th.ones(mu.shape).to(mu.device) * 0.001
-    
-
-                # UNIFORMLY SAMPLE A RANDOM INTERVENTION VALUE
-                # thickness = np.random.uniform(64, 250)
-
-                # # angle_norm = (angle_int - pend_scale[0][0]) / (pend_scale[0][1] - 0)
-                # t_norm = (thickness - mnist_scale[1][0]) / (mnist_scale[1][1] - 0)
-                # labels = cond['c'].clone()
-                # # print(labels[0])
-                # labels[:, 1] = th.tensor(thickness)
-                
-                # # print(labels[:, 0].shape)
-                # # exit(0)
-                
-                # # GENERATE THE GROUND-TRUTH BASED ON CONDITIONED VALUES
-                # v = ms.generate(thickness=labels[:, 0], intensity=labels[:, 1])
-                # # real_angle.append(th.tensor(X_real))
-                
-                # thickness_value = (v[:, 0] - mnist_scale[0][0]) / (mnist_scale[0][1] - 0)
-                # intensity_value = (v[:, 1] - mnist_scale[1][0]) / (mnist_scale[1][1] - 0)
-
-                # # mu[:, :16] = th.ones((args.batch_size, 16)) * 0.67 # 30
-                # # mu[:, 16:32] = th.ones((args.batch_size, 16)) * angle_norm
-
-                # # mu[:, :256] = th.ones((args.batch_size, 256)) * t_norm
-                
-                # z_pre = model.causal_mask.causal_masking(mu, A)
-                # z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-
-                # z_post[:, 256:512] = th.ones((args.batch_size, 256)) * t_norm
-                
-
-                # z = reparameterize(z_post, var)
-
-                # noise = th.randn_like(batch).to(dist_util.dev())
-                # t = th.ones((batch.shape[0]), dtype=th.int64) * 249
-                # t = t.to(dist_util.dev())
-
-                # x_t = diffusion.q_sample(batch.to(dist_util.dev()), t, noise=noise)
-
-
-                # sample_fn = (
-                #     diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
-                # )
-                # cond["z"] = z
-                # cond["c"] = cond["c"].to(dist_util.dev())
-                # cond["y"] = cond["y"].to(dist_util.dev())
-
-                # sample = sample_fn(
-                #     model,
-                #     (args.batch_size, 1, args.image_size, args.image_size),
-                #     noise=x_t,
-                #     clip_denoised=args.clip_denoised,
-                #     model_kwargs=cond,
-                #     w=w
-                # )
-                
-                
-                # out = clf1(th.tensor(sample.cpu()))
-                # thickness_distances.append(nn.L1Loss()(out, th.tensor(thickness_value).unsqueeze(1)))
-                
-                # out = clf2(th.tensor(sample.cpu()))
-                # intensity_distances.append(nn.L1Loss()(out, th.tensor(intensity_value).unsqueeze(1)))
-
-
-                
                 # THICKNESS INTERVENTIONS
                 mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
                 var = th.ones(mu.shape).to(mu.device) * 0.001
@@ -438,8 +364,6 @@ def main():
                 gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
                 dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
                 all_images_thickness.extend([sample.cpu().numpy() for sample in gathered_samples])
-                
-                
 
                 # INTENSITY INTERVENTIONS
                 mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
@@ -476,174 +400,103 @@ def main():
                 all_images_intensity.extend([sample.cpu().numpy() for sample in gathered_samples])
             
             elif "pendulum" in args.data_dir:
-                A = th.tensor([[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=th.float32).to(batch.device)
-
-                if traversal == True:
-                    # RECONSTRUCTIONS
-                    mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
-                    
-                    var = th.ones(mu.shape).to(mu.device) * 0.001
-                    
-                    z_pre = model.causal_mask.causal_masking(mu, A)
-                    z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-
-
-                    z = reparameterize(z_post, var)
-
-                    noise = th.randn_like(batch).to(dist_util.dev())
-                    t = th.ones((batch.shape[0]), dtype=th.int64) * 249
-                    t = t.to(dist_util.dev())
-                    
-                    x_t = diffusion.q_sample(batch.to(dist_util.dev()), t, noise=noise)
-                    
-                    value = -0.5
-                    for i in range(8):
-                        # PENDULUM ANGLE INTERVENTIONS
-                        mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
-                        var = th.ones(mu.shape).to(mu.device) * 0.001
-                        mu[:, 16:32] = th.ones((args.batch_size, 16)) * value # 30
-                        
-                        z_pre = model.causal_mask.causal_masking(mu, A)
-                        z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-
-                        z = reparameterize(z_post, var)
-
-                        sample_fn = (
-                        diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
-                    )
-                        cond["z"] = z
-                        cond["c"] = cond["c"].to(dist_util.dev())
-
-                        sample = sample_fn(
-                            model,
-                            (args.batch_size, 4, args.image_size, args.image_size),
-                            noise=x_t,
-                            clip_denoised=args.clip_denoised,
-                            model_kwargs=cond,
-                            w=w
-                        )
-
-                        gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
-                        dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
-                        all_images_light.extend([sample.cpu().numpy() for sample in gathered_samples])
-                        
-                        value += 0.15
-
-
-
-                # PENDULUM ANGLE INTERVENTIONS
-                mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
-                var = th.ones(mu.shape).to(mu.device) * 0.001
-                
-                # UNIFORMLY SAMPLE A RANDOM INTERVENTION VALUE
-                angle_int = np.random.uniform(-40, 44)
-                # angle_int = np.random.uniform(60, 148)
-                # angle_int = np.random.uniform(3, 9)
-                # angle_int = np.random.uniform(3, 15)
-
+                pass
+                # A = th.tensor([[0, 0, 1, 1], [0, 0, 1, 1], [0, 0, 0, 0], [0, 0, 0, 0]], dtype=th.float32).to(batch.device)
+                #
+                # if traversal == True:
+                #     # RECONSTRUCTIONS
+                #     mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
+                #
+                #     var = th.ones(mu.shape).to(mu.device) * 0.001
+                #
+                #     z_pre = model.causal_mask.causal_masking(mu, A)
+                #     z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
+                #
+                #
+                #     z = reparameterize(z_post, var)
+                #
+                #     noise = th.randn_like(batch).to(dist_util.dev())
+                #     t = th.ones((batch.shape[0]), dtype=th.int64) * 249
+                #     t = t.to(dist_util.dev())
+                #
+                #     x_t = diffusion.q_sample(batch.to(dist_util.dev()), t, noise=noise)
+                #
+                #     value = -0.5
+                #     for i in range(8):
+                #         # PENDULUM ANGLE INTERVENTIONS
+                #         mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
+                #         var = th.ones(mu.shape).to(mu.device) * 0.001
+                #         mu[:, 16:32] = th.ones((args.batch_size, 16)) * value # 30
+                #
+                #         z_pre = model.causal_mask.causal_masking(mu, A)
+                #         z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
+                #
+                #         z = reparameterize(z_post, var)
+                #
+                #         sample_fn = (
+                #         diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
+                #     )
+                #         cond["z"] = z
+                #         cond["c"] = cond["c"].to(dist_util.dev())
+                #
+                #         sample = sample_fn(
+                #             model,
+                #             (args.batch_size, 4, args.image_size, args.image_size),
+                #             noise=x_t,
+                #             clip_denoised=args.clip_denoised,
+                #             model_kwargs=cond,
+                #             w=w
+                #         )
+                #
+                #         gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
+                #         dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
+                #         all_images_light.extend([sample.cpu().numpy() for sample in gathered_samples])
+                #
+                #         value += 0.15
+                #
+                # # PENDULUM ANGLE INTERVENTIONS
+                # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
+                # var = th.ones(mu.shape).to(mu.device) * 0.001
+                #
+                # angle_int = np.random.uniform(-40, 44)
+                #
+                # # angle_norm = (angle_int - pend_scale[0][0]) / (pend_scale[0][1] - 0)
                 # angle_norm = (angle_int - pend_scale[0][0]) / (pend_scale[0][1] - 0)
-                angle_norm = (angle_int - pend_scale[0][0]) / (pend_scale[0][1] - 0)
-                labels = cond['c'].clone()
-                # print(labels[0])
-                labels[:, 0] = th.tensor(angle_int)
-                
-                # print(labels[:, 0].shape)
-                # exit(0)
-                
-                # GENERATE THE GROUND-TRUTH BASED ON CONDITIONED VALUES
-                X_real, v = pd.generate(labels[:, 0], labels[:, 1])
-                # real_angle.append(th.tensor(X_real))
-                
-                angle_value = (v[:, 0] - pend_scale[0][0]) / (pend_scale[0][1] - 0)
-                light_value = (v[:, 1] - pend_scale[1][0]) / (pend_scale[1][1] - 0)
-                shadlen_value = (v[:, 2] - pend_scale[2][0]) / (pend_scale[2][1] - 0)
-                shadpos_value = (v[:, 3] - pend_scale[3][0]) / (pend_scale[3][1] - 0)
-
-                # mu[:, :16] = th.ones((args.batch_size, 16)) * 0.67 # 30
-                # mu[:, 16:32] = th.ones((args.batch_size, 16)) * angle_norm
-
-                
-                z_pre = model.causal_mask.causal_masking(mu, A)
-                z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-
-                z_post[:, :16] = th.ones((args.batch_size, 16)) * angle_norm
-                
-
-                z = reparameterize(z_post, var)
-
-                noise = th.randn_like(batch).to(dist_util.dev())
-                t = th.ones((batch.shape[0]), dtype=th.int64) * 249
-                t = t.to(dist_util.dev())
-
-                x_t = diffusion.q_sample(batch.to(dist_util.dev()), t, noise=noise)
-
-
-                sample_fn = (
-                    diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
-                )
-                cond["z"] = z
-                cond["c"] = cond["c"].to(dist_util.dev())
-
-                sample = sample_fn(
-                    model,
-                    (args.batch_size, 4, args.image_size, args.image_size),
-                    noise=x_t,
-                    clip_denoised=args.clip_denoised,
-                    model_kwargs=cond,
-                    w=w
-                )
-                
-                
-                out = clf1(th.tensor(sample.cpu()))
-                angle_distances.append(nn.L1Loss()(out, th.tensor(angle_value).unsqueeze(1)))
-                
-                out = clf2(th.tensor(sample.cpu()))
-                light_distances.append(nn.L1Loss()(out, th.tensor(light_value).unsqueeze(1)))
-                
-                out = clf3(th.tensor(sample.cpu()))
-                shad_len_distances.append(nn.L1Loss()(out, th.tensor(shadlen_value).unsqueeze(1)))
-                
-                out = clf4(th.tensor(sample.cpu()))
-                shad_pos_distances.append(nn.L1Loss()(out, th.tensor(shadpos_value).unsqueeze(1)))
-                
-                # print(len(distances))
-                # exit(0)
-            
-                # gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
-                # dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
-                # all_images_angle.extend([np.rint(sample.cpu().numpy()) for sample in gathered_samples])
-                # all_images_angle.extend([sample.cpu().numpy() for sample in gathered_samples])
-                
-                
-                
-                
-
+                # labels = cond['c'].clone()
+                # # print(labels[0])
+                # labels[:, 0] = th.tensor(angle_int)
+                #
+                #
+                # # GENERATE THE GROUND-TRUTH BASED ON CONDITIONED VALUES
+                # # X_real, v = pd.generate(labels[:, 0], labels[:, 1])
+                # # real_angle.append(th.tensor(X_real))
+                #
+                # angle_value = (v[:, 0] - pend_scale[0][0]) / (pend_scale[0][1] - 0)
+                # light_value = (v[:, 1] - pend_scale[1][0]) / (pend_scale[1][1] - 0)
+                # shadlen_value = (v[:, 2] - pend_scale[2][0]) / (pend_scale[2][1] - 0)
+                # shadpos_value = (v[:, 3] - pend_scale[3][0]) / (pend_scale[3][1] - 0)
+                #
+                # z_pre = model.causal_mask.causal_masking(mu, A)
+                # z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
+                #
+                # z_post[:, :16] = th.ones((args.batch_size, 16)) * angle_norm
+                #
+                #
+                # z = reparameterize(z_post, var)
+                #
                 # noise = th.randn_like(batch).to(dist_util.dev())
                 # t = th.ones((batch.shape[0]), dtype=th.int64) * 249
                 # t = t.to(dist_util.dev())
+                #
                 # x_t = diffusion.q_sample(batch.to(dist_util.dev()), t, noise=noise)
-
-                # # Pendulum angle Interventions
-                # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
-                # var = th.ones(mu.shape).to(mu.device) * 0.001
-                
-                
-                # # GENERATE THE GROUND-TRUTH BASED ON CONDITIONED VALUES
-                
-                # mu[:, :16] = th.ones((args.batch_size, 16)) * -0.32 # 80
-
-                # z_pre = model.causal_mask.causal_masking(mu, A)
-                # z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-
-                # z = reparameterize(z_post, var)
-
-
+                #
+                #
                 # sample_fn = (
                 #     diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
                 # )
                 # cond["z"] = z
                 # cond["c"] = cond["c"].to(dist_util.dev())
-
+                #
                 # sample = sample_fn(
                 #     model,
                 #     (args.batch_size, 4, args.image_size, args.image_size),
@@ -652,123 +505,19 @@ def main():
                 #     model_kwargs=cond,
                 #     w=w
                 # )
+                #
+                # out = clf1(th.tensor(sample.cpu()))
+                # angle_distances.append(nn.L1Loss()(out, th.tensor(angle_value).unsqueeze(1)))
+                #
+                # out = clf2(th.tensor(sample.cpu()))
+                # light_distances.append(nn.L1Loss()(out, th.tensor(light_value).unsqueeze(1)))
+                #
+                # out = clf3(th.tensor(sample.cpu()))
+                # shad_len_distances.append(nn.L1Loss()(out, th.tensor(shadlen_value).unsqueeze(1)))
+                #
+                # out = clf4(th.tensor(sample.cpu()))
+                # shad_pos_distances.append(nn.L1Loss()(out, th.tensor(shadpos_value).unsqueeze(1)))
 
-                # gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
-                # dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
-                # all_images_angle.extend([sample.cpu().numpy() for sample in gathered_samples])
-
-
-
-                # # Light Position INTERVENTIONS
-                # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
-                # var = th.ones(mu.shape).to(mu.device) * 0.001
-                
-                # # UNIFORMLY SAMPLE A RANDOM INTERVENTION VALUE
-                
-                
-                # # GENERATE THE GROUND-TRUTH BASED ON CONDITIONED VALUES
-                
-                # mu[:, 16:32] = th.ones((args.batch_size, 16)) * -0.32 # 80
-
-                # z_pre = model.causal_mask.causal_masking(mu, A)
-                # z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-
-                # z = reparameterize(z_post, var)
-
-
-                # sample_fn = (
-                #     diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
-                # )
-                # cond["z"] = z
-                # cond["c"] = cond["c"].to(dist_util.dev())
-
-                # sample = sample_fn(
-                #     model,
-                #     (args.batch_size, 4, args.image_size, args.image_size),
-                #     noise=x_t,
-                #     clip_denoised=args.clip_denoised,
-                #     model_kwargs=cond,
-                #     w=w
-                # )
-
-                # gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
-                # dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
-                # all_images_light.extend([sample.cpu().numpy() for sample in gathered_samples])
-                
-                
-                # # Shadow Length INTERVENTIONS
-                # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
-                # var = th.ones(mu.shape).to(mu.device) * 0.001
-                
-                # # UNIFORMLY SAMPLE A RANDOM INTERVENTION VALUE
-                
-                
-                # # GENERATE THE GROUND-TRUTH BASED ON CONDITIONED VALUES
-
-                # z_pre = model.causal_mask.causal_masking(mu, A)
-                # z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-                # z_post[:, 32:48] = th.ones((args.batch_size, 16)) * 1.3 # 10
-
-                # z = reparameterize(z_post, var)
-
-
-
-                # sample_fn = (
-                #     diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
-                # )
-                # cond["z"] = z
-                # cond["c"] = cond["c"].to(dist_util.dev())
-
-                # sample = sample_fn(
-                #     model,
-                #     (args.batch_size, 4, args.image_size, args.image_size),
-                #     noise=x_t,
-                #     clip_denoised=args.clip_denoised,
-                #     model_kwargs=cond,
-                #     w=w
-                # )
-
-                # gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
-                # dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
-                # all_images_shadow_len.extend([sample.cpu().numpy() for sample in gathered_samples])
-
-                
-                
-                # # Shadow Position INTERVENTIONS
-                # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
-                # var = th.ones(mu.shape).to(mu.device) * 0.001
-                
-                # # UNIFORMLY SAMPLE A RANDOM INTERVENTION VALUE
-                
-                
-                # # GENERATE THE GROUND-TRUTH BASED ON CONDITIONED VALUES
-
-                # z_pre = model.causal_mask.causal_masking(mu, A)
-                # z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-                # z_post[:, 48:64] = th.ones((args.batch_size, 16)) * 1.5 # 16
-
-                # z = reparameterize(z_post, var)
-
-
-                # sample_fn = (
-                #     diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
-                # )
-                # cond["z"] = z
-                # cond["c"] = cond["c"].to(dist_util.dev())
-
-                # sample = sample_fn(
-                #     model,
-                #     (args.batch_size, 4, args.image_size, args.image_size),
-                #     noise=x_t,
-                #     clip_denoised=args.clip_denoised,
-                #     model_kwargs=cond,
-                #     w=w
-                # )
-
-                # gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
-                # dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
-                # all_images_shadow_pos.extend([sample.cpu().numpy() for sample in gathered_samples])
-            
             elif "circuit" in args.data_dir:
                 A = th.tensor([[0, 1, 1, 1], [0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 0]], dtype=th.float32).to(batch.device)
 
@@ -777,8 +526,6 @@ def main():
                 t = t.to(dist_util.dev())
                 
                 x_t = diffusion.q_sample(batch.to(dist_util.dev()), t, noise=noise)
-                
-                
                 
                 # ROBOT ARM INTERVENTIONS
                 mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
@@ -790,11 +537,7 @@ def main():
                 z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
 
                 z = reparameterize(z_post, var)
-
-
                 x_t = diffusion.q_sample(batch.to(dist_util.dev()), t, noise=noise)
-
-
                 sample_fn = (
                     diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
                 )
@@ -813,107 +556,7 @@ def main():
                 gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
                 dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
                 all_images_arm.extend([sample.cpu().numpy() for sample in gathered_samples])
-                
-                
 
-                # # BLUE LIGHT INTERVENTIONS
-                # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
-                # var = th.ones(mu.shape).to(mu.device) * 0.001
-
-                # z_pre = model.causal_mask.causal_masking(mu, A)
-                # z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-                # # z_post[:, 8:16] = th.ones((args.batch_size, 8)) * 0.1 # 80
-                # z_post[:, 128:256] = th.ones((args.batch_size, 128)) * 0.0 # 80
-
-                # z = reparameterize(z_post, var)
-
-
-                # sample_fn = (
-                #     diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
-                # )
-                # cond["z"] = z
-                # cond["c"] = cond["c"].to(dist_util.dev())
-
-                # sample = sample_fn(
-                #     model,
-                #     (args.batch_size, 3, args.image_size, args.image_size),
-                #     noise=x_t,
-                #     clip_denoised=args.clip_denoised,
-                #     model_kwargs=cond,
-                #     w=w
-                # )
-
-                # gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
-                # dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
-                # all_images_blue.extend([sample.cpu().numpy() for sample in gathered_samples])
-                
-                
-                # # GREEN LIGHT INTERVENTIONS
-                # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
-                # var = th.ones(mu.shape).to(mu.device) * 0.001
-
-                # z_pre = model.causal_mask.causal_masking(mu, A)
-                # z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-                # z_post[:, 256:384] = th.ones((args.batch_size, 128)) * 0.0 # 10
-
-                # z = reparameterize(z_post, var)
-
-
-
-                # sample_fn = (
-                #     diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
-                # )
-                # cond["z"] = z
-                # cond["c"] = cond["c"].to(dist_util.dev())
-
-                # sample = sample_fn(
-                #     model,
-                #     (args.batch_size, 3, args.image_size, args.image_size),
-                #     noise=x_t,
-                #     clip_denoised=args.clip_denoised,
-                #     model_kwargs=cond,
-                #     w=w
-                # )
-
-                # gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
-                # dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
-                # all_images_green.extend([sample.cpu().numpy() for sample in gathered_samples])
-
-                
-                
-                # # RED LIGHT INTERVENTIONS
-                # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
-                # var = th.ones(mu.shape).to(mu.device) * 0.001
-
-                # z_pre = model.causal_mask.causal_masking(mu, A)
-                # z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-                # # z_post[:, 24:32] = th.ones((args.batch_size, 8)) * 0.9 # 16
-                # z_post[:, 384:512] = th.ones((args.batch_size, 128)) * 0.0 # 16
-
-
-                # z = reparameterize(z_post, var)
-
-
-                # sample_fn = (
-                #     diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
-                # )
-                # cond["z"] = z
-                # cond["c"] = cond["c"].to(dist_util.dev())
-
-                # sample = sample_fn(
-                #     model,
-                #     (args.batch_size, 3, args.image_size, args.image_size),
-                #     noise=x_t,
-                #     clip_denoised=args.clip_denoised,
-                #     model_kwargs=cond,
-                #     w=w
-                # )
-
-                # gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
-                # dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
-                # all_images_red.extend([sample.cpu().numpy() for sample in gathered_samples])
-
-            # if count == 5:
             break
         
         
