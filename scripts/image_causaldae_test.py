@@ -40,6 +40,7 @@ fid = FrechetInceptionDistance(feature=64)
 
 def main():
     args = create_argparser().parse_args()
+    load_classifier = args.load_classifier
     # print(args.data_dir)
     dist_util.setup_dist()
     logger.configure()
@@ -127,7 +128,6 @@ def main():
     # distances = []
     w = None
 
-    load_classifier = True
     if load_classifier:
         # clf = GaussianConvEncoderClf(in_channels=4, latent_dim=512, num_vars=4)
         # clf.load_state_dict(th.load('../results/pendulum/classifier/classifier_angle_best.pth'))
@@ -732,7 +732,8 @@ def create_argparser():
         data_dir="",
         rep_cond=False,
         in_channels=3,
-        n_vars=2
+        n_vars=2,
+        load_classifier=False,  # added this
     )
     defaults.update(model_and_diffusion_defaults())
     parser = argparse.ArgumentParser()
