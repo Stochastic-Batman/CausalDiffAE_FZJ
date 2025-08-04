@@ -37,7 +37,8 @@ import torchvision.models as models
 import torch.nn as nn
 from improved_diffusion.nn import GaussianConvEncoderClf
 from torch.distributions.gamma import Gamma
-# pandas added because pd.
+# added for logging
+import time
 
 fid = FrechetInceptionDistance(feature=64)
 
@@ -168,6 +169,7 @@ def main():
             rep_train = np.empty((60000, 512))
             y_train = np.empty((60000, 2))
 
+            train_start_time = time.time()
             batch_idx = 0
             while batch_idx < 3750:
                 batch, cond = next(data)
@@ -187,8 +189,12 @@ def main():
                 # print(z.shape)
                 y_train[batch_idx*z.shape[0]:(batch_idx*z.shape[0])+ cond["c"].shape[0], :] = cond["c"].cpu().detach().numpy()
 
+                if batch_idx % 50 == 0:
+                    logger.log("batch_idx: " + str(batch_idx) + "/3750")
                 batch_idx += 1
-            
+
+            logger.log(f"Training time: {time.time() - train_start_time}")
+            test_start_time = time.time()
 
             rep_test = np.empty((10000, 512))
             y_test = np.empty((10000, 2))
@@ -208,10 +214,14 @@ def main():
                 rep_test[batch_idx*z.shape[0]:(batch_idx*z.shape[0])+z.shape[0], :] = z.cpu().detach().numpy()
                 y_test[batch_idx*z.shape[0]:(batch_idx*z.shape[0])+ cond["c"].shape[0], :] = cond["c"].cpu().detach().numpy()
 
+                if batch_idx % 50 == 0:
+                    logger.log("batch_idx: " + str(batch_idx) + "/600")
                 batch_idx += 1
 
+            logger.log(f"Testing time: {time.time() - test_start_time}")
             scores, importance_matrix, code_importance = mt._compute_dci(rep_train.T, y_train.T, rep_test.T, y_test.T)
-            print(scores)
+            logger.log(f"Total time: {time.time() - train_start_time}")
+            logger.log(f"DCI scores: {scores}")
         
         elif "pendulum" in args.data_dir:
     
