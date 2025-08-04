@@ -223,6 +223,8 @@ python image_causaldae_test.py --data_dir ../datasets/morphomnist --model_path .
 
 10. Modify `image_causaldae_test.py` to perform desired intervention and sample counterfactual.
 
+**Note:** the code in this repository contains additional logging statements, which is only for debugging purposes and has nothing to do with the functional requirements of the code.
+
 ### Data acknowledgements
 Experiments are run on the following dataset to evaluate our model:
 
