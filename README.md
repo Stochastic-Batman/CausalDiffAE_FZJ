@@ -159,7 +159,7 @@ logger.configure(dir = "../results/morphomnist/diffae_unaligned")
 ```
 
 9. In `improved_diffusion/dist_util.py`, uncomment the line choosing the backend:  
-``backend = "gloo" if not th.cuda.is_available() else "nccl"``
+``backend = "gloo" if not th.cuda.is_available() else "nccl"``. **In case you get an error related to CUDA memory, set `backend = "gloo"`.**
 
 
 10. Navigate to the `scripts` folder, specify hyperparameters or run the default training script:
