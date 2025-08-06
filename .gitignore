@@ -1,6 +1,5 @@
-datasets/io.py
-datasets/*
-datasets/**
+datasets/morphomnist
+datasets/morphomnist/**
 .idea/
 causaldiffae_venv/
 causaldiffae_venv/*
