@@ -25,7 +25,7 @@ def setup_dist():
         return
 
     comm = MPI.COMM_WORLD
-    backend = "gloo" #if not th.cuda.is_available() else "nccl" <------------------------------------------------------ CHANGE BACK FOR UNIX (NCLL IS BACKEND ENGINE TO RUN CUDA)
+    backend = "gloo" if not th.cuda.is_available() else "nccl"
 
     if backend == "gloo":
         hostname = "localhost"

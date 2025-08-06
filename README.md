@@ -13,7 +13,9 @@ This README describes the process of transforming [the original source code](htt
 pip install absl-py==2.3.1 aiohappyeyeballs==2.6.1 aiohttp==3.12.14 aiosignal==1.4.0 attrs==25.3.0 blobfile==3.0.0 colorama==0.4.6 contourpy==1.3.2 cycler==0.12.1 filelock==3.18.0 fonttools==4.59.0 frozenlist==1.7.0 fsspec==2025.5.1 grpcio==1.73.1 idna==3.10 imageio==2.37.0 Jinja2==3.1.6 joblib==1.5.1 kiwisolver==1.4.8 lazy_loader==0.4 lightning-utilities==0.14.3 lxml==6.0.0 Markdown==3.8.2 MarkupSafe==3.0.2 matplotlib==3.10.3 mpi4py==4.1.0 mpmath==1.3.0 multidict==6.6.3 networkx==3.5 numpy==2.3.1 opt_einsum==3.4.0 packaging==25.0 pandas==2.3.1 pillow==11.3.0 propcache==0.3.2 protobuf==6.31.1 pycryptodomex==3.23.0 pyparsing==3.2.3 pyro-api==0.1.2 pyro-ppl==1.9.1 python-dateutil==2.9.0.post0 pytorch-lightning==2.5.2 pytz==2025.2 PyYAML==6.0.2 scikit-image==0.25.2 scikit-learn==1.7.1 scipy==1.16.0 seaborn==0.13.2 setuptools==80.9.0 six==1.17.0 sympy==1.14.0 tensorboard==2.20.0 tensorboard-data-server==0.7.2 threadpoolctl==3.6.0 tifffile==2025.6.11 torch==2.7.1 torch-fidelity==0.3.0 torchmetrics==1.8.0 torchvision==0.22.1 tqdm==4.67.1 typing_extensions==4.14.1 tzdata==2025.2 urllib3==2.5.0 Werkzeug==3.1.3 yarl==1.20.1
 ```
 
-# MorphoMNIST Setup
+3. Install MPI for your operating system. Example for Debian-based Linux distributions: `sudo apt install openmpi-bin`
+
+# Synthetic MorphoMNIST Data Generation
 
 This model uses the MorphoMNIST dataset with the intensity attribute, which is not included in any of the datasets from the [Morpho-MNIST repository](https://github.com/dccastro/Morpho-MNIST). Therefore, we provide instructions for generating the appropriate dataset.
 
@@ -37,7 +39,7 @@ to: ```disk = transform.pyramid_reduce(mag_disk, downscale=scale, order=1)```
 python -m deepscm.datasets.morphomnist.create_synth_thickness_intensity_data --data-dir /path/to/morphomnist -o /path/to/dataset
 ```
 
-## After getting the synthetic MorphoMNIST dataset, you can remove the entire `deepscm` from your computer.
+***After getting the synthetic MorphoMNIST dataset, you can remove the entire `deepscm` from your computer.***
 
 # Training
 
@@ -156,8 +158,11 @@ logger.configure(dir = "../results/morphomnist/diffae_unaligned")
 # logger.configure(dir = "../results/circuit/label_conditional")
 ```
 
+9. In `improved_diffusion/dist_util.py`, uncomment the line choosing the backend:  
+``backend = "gloo" if not th.cuda.is_available() else "nccl"``
 
-9. Navigate to the `scripts` folder, specify hyperparameters or run the default training script:
+
+10. Navigate to the `scripts` folder, specify hyperparameters or run the default training script:
 ```
 ./[dataset]/train_[dataset]_causaldae.sh
 ```
@@ -170,12 +175,12 @@ Example (the dashed lines are reversed because the script is run from Windows Po
 ```
 .\morhomnist\train_mnist_causaldae.sh
 ```
-10. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.
+11. For classifier-free paradigm training, set `masking=True` in hyperparameter configs.
 
 **Note:** this statement is from README of the original repository. However, it turns out, `masking` is not used anywhere except `self.masking = masking`. Basically, this line has no effect on the code.
 
 
-11. To train anti-causal classifiers to evaluate effectiveness, navigate to `improved_diffusion` (or whichever example you are experimenting with) and run:
+12. To train anti-causal classifiers to evaluate effectiveness, navigate to `improved_diffusion` (or whichever example you are experimenting with) and run:
 ```
 python [dataset]_classifier.py
 ```
