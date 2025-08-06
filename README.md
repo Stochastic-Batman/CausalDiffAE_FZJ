@@ -49,6 +49,8 @@ git clone https://github.com/Akomand/CausalDiffAE.git
 cd CausalDiffAE
 ```
 
+If you want to clone this fork with all the files set up, simply: ```git clone https://github.com/Stochastic-Batman/CausalDiffAE_FZJ.git```.
+
 If you haven't installed dependencies with pip by following this README.md file, you can create environment with conda:
 ```
 conda env create -f environment.yml
