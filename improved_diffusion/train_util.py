@@ -129,7 +129,7 @@ class TrainLoop:
         resume_checkpoint = find_resume_checkpoint() or self.resume_checkpoint
         if resume_checkpoint:
             self.resume_step = parse_resume_step_from_filename(resume_checkpoint)
-            if dist.get_rank() == 1:
+            if dist.get_rank() == 0:
                 logger.log(f"loading model from checkpoint: {resume_checkpoint}...")
                 self.model.load_state_dict(
                     dist_util.load_state_dict(
@@ -145,7 +145,7 @@ class TrainLoop:
         main_checkpoint = find_resume_checkpoint() or self.resume_checkpoint
         ema_checkpoint = find_ema_checkpoint(main_checkpoint, self.resume_step, rate)
         if ema_checkpoint:
-            if dist.get_rank() == 1:
+            if dist.get_rank() == 0:
                 logger.log(f"loading EMA from checkpoint: {ema_checkpoint}...")
                 state_dict = dist_util.load_state_dict(
                     ema_checkpoint, map_location=dist_util.dev()
@@ -208,7 +208,7 @@ class TrainLoop:
 
             self.step += 1
             # KL WEIGHT SCHEDULER
-            weight = self.linear_kl_weight_scheduler(self.step, 20, 0.0, 1.0)  # any values here you would like
+            weight = self.linear_kl_weight_scheduler(self.step, 5000, 0.0, 1.0)  # any values here you would like
             self.diffusion.kl_weight = weight
             logger.log(f"step {self.step} complete!")
 
