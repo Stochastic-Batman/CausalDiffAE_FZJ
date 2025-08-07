@@ -92,7 +92,7 @@ def main():
     if eval_disentanglement:
         logger.log("entering eval_disentanglement...")
         if "morphomnist" in args.data_dir:
-            rep_train = np.empty((60000, 512))
+            rep_train = np.empty((60000, 128))
             y_train = np.empty((60000, 2))
 
             train_start_time = time.time()
@@ -118,7 +118,7 @@ def main():
             logger.log(f"{time.strftime("%H:%M:%S" , time.localtime())} -> Training time: {time.time() - train_start_time:.2f}")
             test_start_time = time.time()
 
-            rep_test = np.empty((10000, 512))
+            rep_test = np.empty((10000, 128))
             y_test = np.empty((10000, 2))
             batch_idx = 0
             while batch_idx < 625:
@@ -148,11 +148,11 @@ def main():
             logger.log(f"{time.strftime("%H:%M:%S" , time.localtime())} -> DCI scores: {scores}")
             logger.log(f"{time.strftime("%H:%M:%S" , time.localtime())} -> Total time: {time.time() - train_start_time:.2f}")
     else:
-        count = 0
+        logger.log("NOT entering eval_disentanglement...")
+        counter = 0
         while len(all_images) * args.batch_size < args.num_samples:
             batch, cond = next(data)
 
-            count += 1
             # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
             if "morphomnist" in args.data_dir:
                 A = th.tensor([[0, 1], [0, 0]], dtype=th.float32).to(batch.device)
@@ -173,14 +173,14 @@ def main():
                 t = t.to(dist_util.dev())
 
                 x_t = diffusion.q_sample(batch.to(dist_util.dev()), t, noise=noise)
-
-
                 sample_fn = (
                     diffusion.p_sample_loop if not args.use_ddim else diffusion.ddim_sample_loop
                 )
                 cond["z"] = z
                 cond["y"] = cond["y"].to(dist_util.dev())
 
+                t = time.time()
+                logger.log(f"{time.strftime("%H:%M:%S", time.localtime())} -> Before sample_fn")
                 sample = sample_fn(
                     model,
                     (args.batch_size, 1, args.image_size, args.image_size),
@@ -189,10 +189,13 @@ def main():
                     model_kwargs=cond,
                     w=w
                 )
+                logger.log(f"{time.strftime("%H:%M:%S", time.localtime())} -> After sample_fn | Total time for 1 step: {time.time() - t:.2f}")
 
                 gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
                 dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
                 all_images_thickness.extend([sample.cpu().numpy() for sample in gathered_samples])
+
+                logger.log("Before intensity intervention...")
 
                 # INTENSITY INTERVENTIONS
                 mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
@@ -223,13 +226,14 @@ def main():
                 gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
                 dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
                 all_images_intensity.extend([sample.cpu().numpy() for sample in gathered_samples])
-
+                print(f"Batch {counter}/{args.num_samples} complete!")
             break
 
         if generate_interventions:
             logger.log("generating interventions...")
             if "morphomnist" in args.data_dir:
-                save_image(batch[:32], '../results/morphomnist/original.png')
+                save_image(batch[:32], "../results/morphomnist/original.png")
+                logger.log("batch saved as ../results/morphomnist/original.png")
 
                 # SAVE THICKNESS INTERVENED IMAGE
                 arr = np.concatenate(all_images_thickness, axis=0)
@@ -238,7 +242,8 @@ def main():
 
                 temp = th.tensor(temp, dtype=th.float32)
                 # save_image(temp, '../results/morphomnist/causaldiffae_masked/intervene_thickness.png')
-                save_image(temp, f'../results/morphomnist/intervene_thickness_w={w}.png')
+                save_image(temp, f"../results/morphomnist/intervene_thickness_w={w}.png")
+                logger.log(f"batch saved as ../results/morphomnist/intervene_thickness_w={w}.png")
 
                 # SAVE INTENSITY INTERVENED IMAGE
                 arr = np.concatenate(all_images_intensity, axis=0)
@@ -247,7 +252,8 @@ def main():
 
                 temp = th.tensor(temp, dtype=th.float32)
                 # save_image(temp, '../results/morphomnist/causaldiffae_masked/intervene_intensity.png')
-                save_image(temp, f'../results/morphomnist/intervene_intensity_w={w}.png')
+                save_image(temp, f"../results/morphomnist/intervene_intensity_w={w}.png")
+                logger.log(f"batch saved as ../results/morphomnist/intervene_intensity_w={w}.png")
         else:
             if "morphomnist" in args.data_dir:
                 mean_dist = th.tensor(sum(thickness_distances) / len(thickness_distances))

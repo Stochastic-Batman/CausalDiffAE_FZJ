@@ -100,7 +100,7 @@ self.fc_var = nn.Linear(hidden_dims[-1]*4, latent_dim)
 ```
 to:
 ```
-hidden_dims_last = hidden_dims[-1
+hidden_dims_last = hidden_dims[-1]
 self.fc_mu = nn.Linear(hidden_dims_last, latent_dim)
 self.fc_var = nn.Linear(hidden_dims_last, latent_dim)
 ```
