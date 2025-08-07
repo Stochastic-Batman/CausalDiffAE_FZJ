@@ -92,7 +92,7 @@ def main():
     if eval_disentanglement:
         logger.log("entering eval_disentanglement...")
         if "morphomnist" in args.data_dir:
-            rep_train = np.empty((60000, 128))
+            rep_train = np.empty((60000, 512))
             y_train = np.empty((60000, 2))
 
             train_start_time = time.time()
@@ -118,7 +118,7 @@ def main():
             logger.log(f"{time.strftime("%H:%M:%S" , time.localtime())} -> Training time: {time.time() - train_start_time:.2f}")
             test_start_time = time.time()
 
-            rep_test = np.empty((10000, 128))
+            rep_test = np.empty((10000, 512))
             y_test = np.empty((10000, 2))
             batch_idx = 0
             while batch_idx < 625:
