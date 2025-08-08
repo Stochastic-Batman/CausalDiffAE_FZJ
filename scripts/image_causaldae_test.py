@@ -115,7 +115,7 @@ def main():
                     logger.log("batch_idx: " + str(batch_idx) + "/3750")
                 batch_idx += 1
 
-            logger.log(f"{time.strftime("%H:%M:%S" , time.localtime())} -> Training time: {time.time() - train_start_time:.2f}")
+            logger.log(f'{time.strftime("%H:%M:%S" , time.localtime())} -> Training time: {time.time() - train_start_time:.2f}')
             test_start_time = time.time()
 
             rep_test = np.empty((10000, 512))
@@ -140,13 +140,13 @@ def main():
                     logger.log("batch_idx: " + str(batch_idx) + "/600")
                 batch_idx += 1
 
-            logger.log(f"{time.strftime("%H:%M:%S" , time.localtime())} -> Testing time: {time.time() - test_start_time:.2f}")
-            logger.log(f"{time.strftime("%H:%M:%S" , time.localtime())} -> Computing DCI metrics (this will take far longer than the previous 2 steps combined)...")
+            logger.log(f'{time.strftime("%H:%M:%S" , time.localtime())} -> Testing time: {time.time() - test_start_time:.2f}')
+            logger.log(f'{time.strftime("%H:%M:%S" , time.localtime())} -> Computing DCI metrics (this will take far longer than the previous 2 steps combined)...')
             dci_start_time = time.time()
             scores, importance_matrix, code_importance = mt._compute_dci(rep_train.T, y_train.T, rep_test.T, y_test.T)
-            logger.log(f"{time.strftime("%H:%M:%S" , time.localtime())} -> DCI time: {time.time() - dci_start_time:.2f}")
-            logger.log(f"{time.strftime("%H:%M:%S" , time.localtime())} -> DCI scores: {scores}")
-            logger.log(f"{time.strftime("%H:%M:%S" , time.localtime())} -> Total time: {time.time() - train_start_time:.2f}")
+            logger.log(f'{time.strftime("%H:%M:%S" , time.localtime())} -> DCI time: {time.time() - dci_start_time:.2f}')
+            logger.log(f'{time.strftime("%H:%M:%S" , time.localtime())} -> DCI scores: {scores}')
+            logger.log(f'{time.strftime("%H:%M:%S" , time.localtime())} -> Total time: {time.time() - train_start_time:.2f}')
     else:
         logger.log("NOT entering eval_disentanglement...")
         counter = 0
@@ -189,7 +189,7 @@ def main():
                     model_kwargs=cond,
                     w=w
                 )
-                logger.log(f"{time.strftime("%H:%M:%S", time.localtime())} -> After sample_fn | Total time for 1 step: {time.time() - t:.2f}")
+                logger.log(f'{time.strftime("%H:%M:%S", time.localtime())} -> After sample_fn | Total time for 1 step: {time.time() - t:.2f}')
 
                 gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
                 dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
@@ -226,7 +226,7 @@ def main():
                 gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
                 dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
                 all_images_intensity.extend([sample.cpu().numpy() for sample in gathered_samples])
-                print(f"Batch {counter}/{args.num_samples} complete!")
+                print(f'Batch {counter}/{args.num_samples} complete!')
             break
 
         if generate_interventions:
@@ -242,8 +242,8 @@ def main():
 
                 temp = th.tensor(temp, dtype=th.float32)
                 # save_image(temp, '../results/morphomnist/causaldiffae_masked/intervene_thickness.png')
-                save_image(temp, f"../results/morphomnist/intervene_thickness_w={w}.png")
-                logger.log(f"batch saved as ../results/morphomnist/intervene_thickness_w={w}.png")
+                save_image(temp, f'../results/morphomnist/intervene_thickness_w={w}.png')
+                logger.log(f'batch saved as ../results/morphomnist/intervene_thickness_w={w}.png')
 
                 # SAVE INTENSITY INTERVENED IMAGE
                 arr = np.concatenate(all_images_intensity, axis=0)
@@ -252,8 +252,8 @@ def main():
 
                 temp = th.tensor(temp, dtype=th.float32)
                 # save_image(temp, '../results/morphomnist/causaldiffae_masked/intervene_intensity.png')
-                save_image(temp, f"../results/morphomnist/intervene_intensity_w={w}.png")
-                logger.log(f"batch saved as ../results/morphomnist/intervene_intensity_w={w}.png")
+                save_image(temp, f'../results/morphomnist/intervene_intensity_w={w}.png')
+                logger.log(f'batch saved as ../results/morphomnist/intervene_intensity_w={w}.png')
         else:
             if "morphomnist" in args.data_dir:
                 mean_dist = th.tensor(sum(thickness_distances) / len(thickness_distances))
