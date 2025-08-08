@@ -213,7 +213,7 @@ and add ``pass`` instead of it.
 6. From `scripts/image_causaldae_test.py` remove `load_classifier = True`. Add `load_classifier=False` to the default dict of `create_argparser()` in the same file. In the `main` method, add `load_classifier` after `args = create_argparser().parse_args()`.
 
 
-7. Do the same for `eval_disentanglement = False` and `generate_interventions = True`.
+7. Do the same for `eval_disentanglement = False`, `generate_interventions = True` and `w=1`.
 
 
 8. At this point, it would probably be a good idea to simply copy `scripts/image_causaldae_test.py` from this fork.

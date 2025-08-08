@@ -179,7 +179,7 @@ def main():
                 cond["z"] = z
                 cond["y"] = cond["y"].to(dist_util.dev())
 
-                t = time.time()
+                sample_fn_start_time = time.time()
                 logger.log(f"{time.strftime("%H:%M:%S", time.localtime())} -> Before sample_fn")
                 sample = sample_fn(
                     model,
@@ -189,13 +189,13 @@ def main():
                     model_kwargs=cond,
                     w=w
                 )
-                logger.log(f'{time.strftime("%H:%M:%S", time.localtime())} -> After sample_fn | Total time for 1 step: {time.time() - t:.2f}')
+
+                sample_fn_stop_time = time.time()
+                logger.log(f'{time.strftime("%H:%M:%S", time.localtime())} -> After sample_fn | Total time: {sample_fn_stop_time - sample_fn_start_time:.2f} seconds')
 
                 gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
                 dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
                 all_images_thickness.extend([sample.cpu().numpy() for sample in gathered_samples])
-
-                logger.log("Before intensity intervention...")
 
                 # INTENSITY INTERVENTIONS
                 mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
@@ -214,6 +214,8 @@ def main():
                 cond["z"] = z
                 cond["y"] = cond["y"].to(dist_util.dev())
 
+                actual_sample_time = time.time()
+                logger.log(f'{time.strftime("%H:%M:%S", time.localtime())} -> Before actual sampling...')
                 sample = sample_fn(
                     model,
                     (args.batch_size, 1, args.image_size, args.image_size),
@@ -222,11 +224,11 @@ def main():
                     model_kwargs=cond,
                     w=w
                 )
+                logger.log(f'{time.strftime("%H:%M:%S", time.localtime())} -> After actual sampling | Total time: {time.time() - actual_sample_time:.2f} seconds')
 
                 gathered_samples = [th.zeros_like(sample) for _ in range(dist.get_world_size())]
                 dist.all_gather(gathered_samples, sample)  # gather not supported with NCCL
                 all_images_intensity.extend([sample.cpu().numpy() for sample in gathered_samples])
-                print(f'Batch {counter}/{args.num_samples} complete!')
             break
 
         if generate_interventions:
@@ -267,13 +269,13 @@ def main():
                 print(f"Intensity MAE: {sum(gathered_samples) / len(gathered_samples)}")
     
     dist.barrier()
-    logger.log("testing complete")
+    logger.log("Testing complete!")
 
 
 def create_argparser():
     defaults = dict(
         clip_denoised=True,
-        num_samples=10000,
+        num_samples=100,
         batch_size=16,
         use_ddim=False,
         model_path="",
