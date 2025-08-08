@@ -32,6 +32,7 @@ def main():
     load_classifier = args.load_classifier
     eval_disentanglement = args.eval_disentanglement
     generate_interventions = args.generate_interventions
+    w = args.w
     dist_util.setup_dist()
     logger.configure()
 
@@ -73,7 +74,6 @@ def main():
     all_images_intensity = []
     thickness_distances = []
     intensity_distances = []
-    w = None
 
     if load_classifier:
         logger.log("entering load_classifier...")
@@ -290,6 +290,7 @@ def create_argparser():
     defaults.update(model_and_diffusion_defaults())
     parser = argparse.ArgumentParser()
     add_dict_to_argparser(parser, defaults)
+    parser.add_argument('--w', type=float, default=None, help='Convex coefficient for model output')
     return parser
 
 

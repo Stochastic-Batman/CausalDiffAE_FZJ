@@ -278,7 +278,7 @@ class GaussianDiffusion:
             # IF GUIDANCE STRENGTH IS PROVIDED
             pred_eps_cond, _, _, _, _ = model(x, self._scale_timesteps(t), **model_kwargs)
             model_kwargs_new = model_kwargs.copy()
-            model_kwargs_new["z"] = th.zeros((x.shape[0], 64), device = x.device)
+            model_kwargs_new["z"] = th.zeros((x.shape[0], model_kwargs["z"].shape[1]), device=x.device)
             # model_kwargs_new["z"] = th.zeros((x.shape[0], 512), device = x.device)
             pred_eps_uncond, _, _, _, _ = model(x, self._scale_timesteps(t), **model_kwargs_new)
             
