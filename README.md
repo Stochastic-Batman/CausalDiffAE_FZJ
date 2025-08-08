@@ -127,7 +127,7 @@ def run_loop(self):
         
         self.step += 1
         # KL WEIGHT SCHEDULER
-        weight = self.linear_kl_weight_scheduler(self.step, 20, 0.0, 1.0)  # any values here you would like
+        weight = self.linear_kl_weight_scheduler(self.step, 5000, 0.0, 1.0)  # any values here you would like
         self.diffusion.kl_weight = weight
         logger.log(f"step {self.step} complete!")
         
