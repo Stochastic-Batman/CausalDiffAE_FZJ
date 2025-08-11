@@ -155,17 +155,28 @@ def main():
             # mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
             if "morphomnist" in args.data_dir:
                 A = th.tensor([[0, 1], [0, 0]], dtype=th.float32).to(batch.device)
+                logger.log(f"Causal adjacency matrix A: {A.tolist()}")
 
                 # THICKNESS INTERVENTIONS
                 mu, var = model.rep_emb.encode(batch.to(dist_util.dev()))
+                logger.log(f'Original mu shape: {mu.shape}, mean: {mu.mean():.2f}, std: {mu.std():.2f}')
                 var = th.ones(mu.shape).to(mu.device) * 0.001
                 
                 mu[:, :256] = th.ones((args.batch_size, 256)) * 0.2
 
                 z_pre = model.causal_mask.causal_masking(mu, A)
+                # next 4 lines for logging
+                z_pre_reshaped = z_pre.reshape(-1, 2, z_pre.shape[1] // 2)
+                thickness_pre_norm = th.norm(z_pre_reshaped[:, 0, :]).mean().item()
+                intensity_thickness_sim = th.cosine_similarity(z_pre_reshaped[:, 1, :].flatten(), mu[:, :256].flatten(), dim=0).item()
+                logger.log(f'After causal masking - thickness z_pre norm: {thickness_pre_norm:.2f}, intensity-thickness similarity: {intensity_thickness_sim:.2f}')
+
                 z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
+                z_post_reshaped = z_post.reshape(-1, 2, z_post.shape[1] // 2)
+                logger.log(f'After nonlinearity - thickness mean: {z_post_reshaped[:, 0, :].mean():.2f}, intensity mean: {z_post_reshaped[:, 1, :].mean():.2f}')
 
                 z = reparameterize(z_post, var)
+                logger.log(f'Thickness intervention - z shape: {z.shape}, z mean: {z.mean():.2f}')
 
                 noise = th.randn_like(batch).to(dist_util.dev())
                 t = th.ones((batch.shape[0]), dtype=th.int64) * 249
@@ -179,7 +190,7 @@ def main():
                 cond["y"] = cond["y"].to(dist_util.dev())
 
                 sample_fn_start_time = time.time()
-                logger.log(f"{time.strftime("%H:%M:%S", time.localtime())} -> Before sample_fn")
+                logger.log(f'{time.strftime("%H:%M:%S", time.localtime())} -> Before sample_fn')
                 sample = sample_fn(
                     model,
                     (args.batch_size, 1, args.image_size, args.image_size),
@@ -203,7 +214,9 @@ def main():
                 z_pre = model.causal_mask.causal_masking(mu, A)
                 z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
                 z_post[:, 256:] = th.ones((args.batch_size, 256)) * 0.2
+                logger.log(f'Intensity intervention - z_post mean before reparameterization: {z_post.mean():.2f}')
                 z = reparameterize(z_post, var)
+                logger.log(f'Intensity intervention - final z mean: {z.mean():.2f}')
 
                 x_t = diffusion.q_sample(batch.to(dist_util.dev()), t, noise=noise)
 
