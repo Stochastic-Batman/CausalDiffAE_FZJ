@@ -240,10 +240,10 @@ model_kwargs_new["z"] = th.zeros((x.shape[0], model_kwargs["z"].shape[1]), devic
 ```
 or
 ```
-python image_causaldae_test.py --data_dir ../datasets/morphomnist --model_path ../results/morphomnist/model002000.pt --n_vars 2 --in_channels 1 --image_size 28 --num_channels 128 --num_res_blocks 3 --learn_sigma False --class_cond True --causal_modeling True --rep_cond True --diffusion_steps 1000 --batch_size 16 --timestep_respacing 250 --use_ddim True --eval_disentanglement False --w None
+python image_causaldae_test.py --data_dir ../datasets/morphomnist --model_path ../results/morphomnist/model002000.pt --n_vars 2 --in_channels 1 --image_size 28 --num_channels 128 --num_res_blocks 3 --learn_sigma False --class_cond True --causal_modeling True --rep_cond True --diffusion_steps 1000 --batch_size 16 --timestep_respacing 250 --use_ddim True --eval_disentanglement True
 ```
 
-11. Modify `image_causaldae_test.py` to perform the desired intervention and sample the counterfactual. To perform interventions, set `--eval_disentanglement False --w YOUR_VALUE`.
+11. Command above evaluates the trained model with the DCI scores. To perform interventions, set `--eval_disentanglement False --w VALUE` with VALUE from `[0, 1]`.
 
 **Note:** The code in this repository contains additional logging statements, which are only for debugging purposes and have nothing to do with the functional requirements of the code. For convenience, I also removed everything extra from `image_causaldae_test.py` and only left parts related to the MorphoMNIST testing. However, if you follow the README up until now from the original code, you will still have code for pendulum and circuit experiments.
 
