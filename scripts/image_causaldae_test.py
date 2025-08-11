@@ -149,7 +149,6 @@ def main():
             logger.log(f'{time.strftime("%H:%M:%S" , time.localtime())} -> Total time: {time.time() - train_start_time:.2f} seconds')
     else:
         logger.log("NOT entering eval_disentanglement...")
-        counter = 0
         while len(all_images) * args.batch_size < args.num_samples:
             batch, cond = next(data)
 
