@@ -90,6 +90,17 @@ To import this `io.py`, please add empty `datasets/__init__.py`.
 A = th.tensor([[0, 1], [0, 0]], dtype=th.float32)
 ```
 
+Feature 0 represents thickness, while Feature 1 represents intensity. We expect changes in thickness to affect intensity, but not the other way around. One might take a look at `causal_masking` method in `improved_diffusion/nn.py`:
+```
+def causal_masking(self, u, A):
+    u = u.reshape(-1, self.num_var, self.latent_dim // self.num_var)
+    z_pre = th.matmul(A.t().to(u.device), u)
+    # A = [[0,1],[0,0]], so A^T = [[0,0],[1,0]]
+    # z_pre[0] (thickness) = 0 * thickness + 0 * intensity = 0 (no parents)
+    # z_pre[1] (intensity) = 1 * thickness + 0 * intensity = thickness (thickness as parent)
+    return z_pre
+```
+
 4. For each of the training and testing scripts in `scripts\morhomnist`(unfortunate typo in the original code) and other(`scripts\` subfolders) set `--data-dir` argument to `../datasets/morphomnist`.
 
 

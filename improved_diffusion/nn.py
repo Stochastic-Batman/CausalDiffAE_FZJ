@@ -290,9 +290,10 @@ class CausalModeling(nn.Module):
 
     def causal_masking(self, u, A):
         u = u.reshape(-1, self.num_var, self.latent_dim // self.num_var)
-
         z_pre = th.matmul(A.t().to(u.device), u)
-        
+        # A = [[0,1],[0,0]], so A^T = [[0,0],[1,0]]
+        # z_pre[0] (thickness) = 0 * thickness + 0 * intensity = 0 (no parents)
+        # z_pre[1] (intensity) = 1 * thickness + 0 * intensity = thickness (thickness as parent)
         return z_pre
 
     def nonlinearity_add_back_noise(self, u, z_pre):
