@@ -9,3 +9,7 @@ casualdiffae_venv/*
 casualdiffae_venv/**
 **/__pycache__/**
 results/**
+Documentation/paper.aux
+Documentation/paper.log
+Documentation/paper.out
+Documentation/paper.synctex.gz
