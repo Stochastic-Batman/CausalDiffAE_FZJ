@@ -14,7 +14,7 @@ useful for solving the Assignment Problem.
 Assignment Problem
 ==================
 
-Let *C* be an *n*\ x\ *n* matrix representing the costs of each of *n* workers
+Let *C* be an *n* x *n* matrix representing the costs of each of *n* workers
 to perform any of *n* jobs. The assignment problem is to assign jobs to
 workers in a way that minimizes the total cost. Since each worker can perform
 only one job and each job can be assigned to only one worker the assignments
