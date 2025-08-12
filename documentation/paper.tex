@@ -924,9 +924,16 @@
 	
 	\textbf{\normalsize Note: Results below are from the model trained for 210,400 steps!}
 	
-	\subsubsection*{DCI Scores}
-	
-	The model achieved a disentanglement score of $\approx 0.99$ and a completeness score of $\approx 0.53$.   
+	\begin{table}[h]
+		\centering
+		\begin{tabular}{@{}ll@{}}
+			\toprule
+			Metric            & Score \\ \midrule
+			Disentanglement   & $\approx 0.99$ \\
+			Completeness      & $\approx 0.53$ \\ \bottomrule
+		\end{tabular}
+		\caption{Model Performance Metrics}
+	\end{table}
 	
 	The disentanglement score of $\approx 0.99$ shows that the model has almost perfectly separated the latent variables so that each one corresponds to a single generative factor. This means the representation is highly interpretable, with minimal mixing between factors of variation.  
 	
@@ -962,6 +969,107 @@
 		\label{fig:original_images}
 	\end{figure}
 	
+	\subsection*{Intervention Analysis}
+	
+	The causal relationship $T \implies I$ is encoded in the adjacency matrix $A$:
+	
+	$$
+	A = \begin{bmatrix}
+		0 & 1 \\
+		0 & 0 
+	\end{bmatrix}
+	$$
+	
+	This matrix implies: \begin{enumerate}
+		\item Thickness, $z_0$ (the first row/column of $A$), has no parents.
+		\item Intensity, $z_1$ (the second row/column of $A$), depends on thickness.
+	\end{enumerate}
+	
+	For thickness interventions:
+	$$\text{do}(z_0 = c) \implies  z_1 := f(c) + \epsilon_I, \ x \sim p(x \mid z_0 := c, z_1 := f(c)+\epsilon) $$
+	Intensity changes due to the functional dependence $f(z_0)$. For intensity interventions:
+	$$ \text{do}(z_1 = c) \implies z_0 \indep z_1, \ x \sim p(x \mid z_0, z_1 := c) $$
+	Thickness remains unchanged due to the absence of backdoor paths ($A_{10} = 0$).
+	
+	\subsection*{Guidance Weight ($w$) Effects}
+	Recall, the guidance weight controls conditional sampling:
+	
+	$$\epsilon_{\text{guided}} = w \cdot \epsilon_{\text{cond}} + (1 - w) \cdot \epsilon_{\text{uncond}}$$
+	
+	\begin{figure}[H]
+		\centering
+		\begin{subfigure}{0.32\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/original_0.0}
+			\caption{Original $w=0.0$}
+		\end{subfigure}
+		\begin{subfigure}{0.32\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/thickness_0.0}
+			\caption{Thickness intervention}
+		\end{subfigure}
+		\begin{subfigure}{0.32\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/intensity_0.0}
+			\caption{Intensity intervention}
+		\end{subfigure}
+		\caption{Interventions at $w=0.0$: Thickness intervention produces uniformly thick/faint digits. Intensity intervention produces faint digits with varying thickness.}
+		\label{fig:w0}
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\begin{subfigure}{0.32\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/original_0.5}
+			\caption{Original $w=0.5$}
+		\end{subfigure}
+		\begin{subfigure}{0.32\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/thickness_0.5}
+			\caption{Thickness intervention}
+		\end{subfigure}
+		\begin{subfigure}{0.32\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/intensity_0.5}
+			\caption{Intensity intervention}
+		\end{subfigure}
+		\caption{Interventions at $w=0.5$: Thicker digits correlate with darker intensity. Fainter digits maintain thickness variations.}
+		\label{fig:w05}
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\begin{subfigure}{0.32\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/original_1.0}
+			\caption{Original $w=1.0$}
+		\end{subfigure}
+		\begin{subfigure}{0.32\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/thickness_1.0}
+			\caption{Thickness intervention}
+		\end{subfigure}
+		\begin{subfigure}{0.32\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/intensity_1.0}
+			\caption{Intensity intervention}
+		\end{subfigure}
+		\caption{Interventions at $w=1.0$: Extreme conditioning produces degenerate outputs. Causal structure remains preserved.}
+		\label{fig:w1}
+	\end{figure}
+	
+	\subsubsection*{Key Observations}
+	\begin{enumerate}
+		\item $\forall w \in \{0, \frac{1}{2}, 1\}, \ z_0 \rightarrow z_1 \land z_1 \not \rightarrow z_0$.
+		\item Degeneration at $w = 1.0$ occurs when latents exceed training distribution support.
+		\item Disentanglement score $\approx 0.99$ validates causal independence of thickness.
+	\end{enumerate}
+	
+	\subsection*{Conclusion}
+	The model correctly enforces:
+	$$\frac{\partial z_1}{\partial z_0} \neq 0 \text{, but } \frac{\partial z_0}{\partial z_1} = 0$$
+	confirming $T \rightarrow I \land I \not \rightarrow T$ is preserved across all $w$ values. Degenerate outputs at $w=1.0$ reflect latent space limitations, not causal violations.
 	
 	\begin{thebibliography}{9}
 		
