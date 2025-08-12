@@ -162,7 +162,7 @@ def main():
                 logger.log(f'Original mu shape: {mu.shape}, mean: {mu.mean():.2f}, std: {mu.std():.2f}')
                 var = th.ones(mu.shape).to(mu.device) * 0.001
                 
-                mu[:, :256] = th.ones((args.batch_size, 256)) * 0.2
+                mu[:, :256] = th.ones((args.batch_size, 256)) * 0.2  # The first 256 latent dimensions correspond to thickness, the last 256 to intensity.
 
                 z_pre = model.causal_mask.causal_masking(mu, A)
                 # next 4 lines for logging
@@ -213,7 +213,7 @@ def main():
 
                 z_pre = model.causal_mask.causal_masking(mu, A)
                 z_post = model.causal_mask.nonlinearity_add_back_noise(mu, z_pre).to(mu.device)
-                z_post[:, 256:] = th.ones((args.batch_size, 256)) * 0.2
+                z_post[:, 256:] = th.ones((args.batch_size, 256)) * 0.2  # The first 256 latent dimensions correspond to thickness, the last 256 to intensity.
                 logger.log(f'Intensity intervention - z_post mean before reparameterization: {z_post.mean():.2f}')
                 z = reparameterize(z_post, var)
                 logger.log(f'Intensity intervention - final z mean: {z.mean():.2f}')

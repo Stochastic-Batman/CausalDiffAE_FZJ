@@ -9,6 +9,7 @@
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\usepackage{subcaption}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning}
 
@@ -939,10 +940,25 @@
 	
 	\begin{figure}[H]
 		\centering
-		\includegraphics[width=0.3\textwidth]{images/original_0.0} \hfill
-		\includegraphics[width=0.3\textwidth]{images/original_0.5} \hfill
-		\includegraphics[width=0.3\textwidth]{images/original_1.0}
-		\caption{Images in a horizontal line}
+		\begin{subfigure}{0.3\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/original_0.0}
+			\caption{$w = 0.0$}
+			\label{fig:original_0.0}
+		\end{subfigure} \hfill
+		\begin{subfigure}{0.3\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/original_0.5}
+			\caption{$w = 0.5$}
+			\label{fig:original_0.5}
+		\end{subfigure} \hfill
+		\begin{subfigure}{0.3\textwidth}
+			\centering
+			\includegraphics[width=\textwidth]{images/original_1.0}
+			\caption{$w = 1.0$}
+			\label{fig:original_1.0}
+		\end{subfigure}
+		\caption{Original images for each experiment.}
 		\label{fig:original_images}
 	\end{figure}
 	
